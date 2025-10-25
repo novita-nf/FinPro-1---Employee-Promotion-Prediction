@@ -1,0 +1,11 @@
+Kolom,Deskripsi
+Employee_ID,ID unik untuk tiap karyawan
+Age,Usia karyawan (terdapat missing & anomali)
+Years_at_Company,Lama bekerja di perusahaan (tahun)
+Performance_Score,Skor performa tahunan (1–5)
+Leadership_Score,Skor kepemimpinan (0–100)
+Training_Hours,Jumlah jam pelatihan yang diikuti karyawan
+Projects_Handled,Jumlah proyek yang pernah ditangani
+Peer_Review_Score,Skor penilaian rekan kerja (0–100)
+Current_Position_Level,"Level jabatan saat ini (Junior, Mid, Senior, Lead)"
+Promotion_Eligible,"Label target: 1 = eligible dipromosikan, 0 = tidak eligible"
