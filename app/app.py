@@ -58,8 +58,10 @@ st.markdown("""
 # ===============================
 # 2️. LOAD DATA / MODEL
 # ===============================
-df = pd.read_csv("dataset.csv")
-model = joblib.load("model.pkl")
+data_path = os.path.join("..", "Data", "Rakamin Bootcamp - Dataset - Promotion Dataset.csv")
+model_path = os.path.join("model.pkl")
+df = pd.read_csv(data_path)
+model = joblib.load(model_path)
 
 # ===============================
 # 3️. HEADER
