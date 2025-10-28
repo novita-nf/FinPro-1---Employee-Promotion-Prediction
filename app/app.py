@@ -58,8 +58,8 @@ st.markdown("""
 # ===============================
 # 2️. LOAD DATA / MODEL
 # ===============================
-data_path = os.path.join("..", "Data", "Rakamin Bootcamp - Dataset - Promotion Dataset.csv")
-model_path = os.path.join("model.pkl")
+data_path = os.path.join("Data/Rakamin Bootcamp - Dataset - Promotion Dataset.csv")
+model_path = os.path.join("app/model.pkl")
 df = pd.read_csv(data_path)
 model = joblib.load(model_path)
 
