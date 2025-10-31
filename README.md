@@ -24,3 +24,14 @@ Dengan memanfaatkan data historis karyawan, proyek ini bertujuan membangun **mod
 - Membangun model klasifikasi untuk memprediksi karyawan yang **layak promosi (eligible)**.  
 - Memberikan insight bagi HR untuk mendukung keputusan promosi yang lebih objektif dan data-driven.
 
+## Employee Promotion Prediction App
+
+A Streamlit web app for HR analytics and promotion prediction.
+
+🔗 **Live App:** [Click here to open](https://finpro-1---employee-promotion-prediction-insdcakxfkkveobbk3pnp.streamlit.app/)
+
+📂 **Data Source:** `Data/Rakamin Bootcamp - Dataset - Promotion Dataset.csv`
+
+🧠 **Model:** RandomForest pipeline (`model2.pkl`)
+
+
