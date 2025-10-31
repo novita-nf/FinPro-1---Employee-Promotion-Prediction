@@ -59,11 +59,14 @@ st.markdown("""
 # 2️. LOAD DATA / MODEL
 # ===============================
 # Path absolut ke folder tempat app.py berada
-BASE_DIR = Path(__file__).parent
+if "__file__" in globals():
+    BASE_DIR = Path(__file__).parent
+else:
+    BASE_DIR = Path(os.getcwd())  # fallback kalau Streamlit cloud tidak punya __file__
 
-# Path untuk data dan model
+# Path aman untuk data dan model
 data_path = BASE_DIR / "Data" / "Rakamin Bootcamp - Dataset - Promotion Dataset.csv"
-model_path = BASE_DIR / "model.pkl"
+model_path = BASE_DIR / "app" / "model.pkl"
 
 # Load data dan model
 df = pd.read_csv(data_path)
