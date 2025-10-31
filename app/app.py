@@ -71,7 +71,7 @@ data_path = BASE_DIR.parent / "Data" / "Rakamin Bootcamp - Dataset - Promotion D
 model_path = BASE_DIR / "model.pkl"
 
 # Load data dan model
-df = pd.read_csv(data_path)
+df = pd.read_csv(data_path, sep=";")
 model = joblib.load(model_path)
 
 # ===============================
