@@ -79,7 +79,6 @@ model = joblib.load(model_path)
 # ===============================
 # 3️⃣ HEADER
 # ===============================
-# Path absolut file logo relatif terhadap lokasi app.py
 logo_path = Path(__file__).parent / "ALGORANGER 2 Logo with Graph and Hat (1).png"
 
 col1, col2 = st.columns([1, 5])
@@ -156,7 +155,13 @@ if menu == "Promotion":
     # ===============================
     # 6️⃣ TOP 5 PROMOTION RECOMMENDATION
     # ===============================
-    df["Predicted_Promotion"] = model.predict(df.drop(columns=["Promotion_Eligible"], errors="ignore"))
+    try:
+        df_model = df.select_dtypes(include=["number"]).copy()
+        df["Predicted_Promotion"] = model.predict(df_model)
+    except Exception as e:
+        st.error(f"Prediction failed: {e}")
+        df["Predicted_Promotion"] = 0
+
     top5 = df[df["Predicted_Promotion"] == 1].head(5)
     st.markdown("### Top 5 Employees Recommended for Promotion")
     st.table(top5[["Employee_ID", "Current_Position_Level", "Performance_Score", "Predicted_Promotion"]])
@@ -176,17 +181,85 @@ if menu == "Promotion":
             emp_data = df[df["Employee_ID"].astype(str) == emp_id_input]
             st.dataframe(emp_data)
 
-            prediction = model.predict(
-                emp_data.drop(columns=["Promotion_Eligible", "Predicted_Promotion"], errors="ignore")
-            )[0]
+            # Pastikan kolom sesuai model
+            emp_features = emp_data.select_dtypes(include=["number"])
+            prediction = model.predict(emp_features)[0]
 
             if prediction == 1:
                 st.markdown("### ✅ Eligible for Promotion")
             else:
-                st.markdown("###Not Eligible for Promotion Yet")
+                st.markdown("### ⚠️ Not Eligible for Promotion Yet")
 
             st.caption(f"Prediction generated on: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
         else:
             st.warning(f"Employee ID **{emp_id_input}** not found in dataset.")
-            st.info("Please add this employee in the input form below or update the dataset.")
+            st.info("Please add this employee in the input form below or upload CSV.")
+
+
+    # ===============================
+    # 8️⃣ INPUT SECTION (MANUAL + CSV)
+    # ===============================
+    st.markdown("---")
+    st.subheader("🔒 Employee Input Prediction")
+
+    login_user = st.text_input("Login ID")
+    login_pass = st.text_input("Password", type="password")
+
+    if login_user == "0000" and login_pass == "0000":
+        st.success("Login successful ✅")
+
+        st.markdown("### 📋 Add New Employee Data Manually or Upload CSV")
+
+        input_method = st.radio(
+            "Choose input method:",
+            ["Manual Entry", "Upload CSV"]
+        )
+
+        if input_method == "Manual Entry":
+            colA, colB = st.columns(2)
+            with colA:
+                emp_id = st.text_input("Employee ID")
+                age = st.number_input("Age", 18, 65, 30)
+                years = st.number_input("Years at Company", 0, 40, 5)
+                perf = st.number_input("Performance Score (1-5)", 1, 5, 3)
+                lead = st.number_input("Leadership Score (0-100)", 0, 100, 50)
+            with colB:
+                train = st.number_input("Training Hours", 0, 200, 40)
+                projects = st.number_input("Projects Handled", 0, 50, 5)
+                peer = st.number_input("Peer Review Score (0-100)", 0, 100, 60)
+                pos = st.selectbox("Current Position Level", ["Junior", "Mid", "Senior", "Lead"])
+
+            if st.button("Predict Promotion Eligibility"):
+                new_data = pd.DataFrame([{
+                    "Age": age,
+                    "Years_at_Company": years,
+                    "Performance_Score": perf,
+                    "Leadership_Score": lead,
+                    "Training_Hours": train,
+                    "Projects_Handled": projects,
+                    "Peer_Review_Score": peer,
+                }])
+
+                prediction = model.predict(new_data)[0]
+                if prediction == 1:
+                    st.success("✅ This employee is likely **Eligible for Promotion**.")
+                else:
+                    st.warning("This employee is **Not Yet Eligible** for promotion.")
+
+        elif input_method == "Upload CSV":
+            uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+            if uploaded_file is not None:
+                new_df = pd.read_csv(uploaded_file, sep=";")
+                st.write("Uploaded Data Preview:", new_df.head())
+
+                try:
+                    new_df_model = new_df.select_dtypes(include=["number"])
+                    preds = model.predict(new_df_model)
+                    new_df["Predicted_Promotion"] = preds
+                    st.success("✅ Predictions generated successfully!")
+                    st.dataframe(new_df)
+                except Exception as e:
+                    st.error(f"Prediction failed: {e}")
+    else:
+        st.info("Please login with ID: 0000 and Password: 0000 to access prediction input.")
