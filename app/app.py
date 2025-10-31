@@ -35,7 +35,7 @@ else:
     BASE_DIR = Path(os.getcwd())
 
 data_path = BASE_DIR.parent / "Data" / "Rakamin Bootcamp - Dataset - Promotion Dataset.csv"
-model_path = BASE_DIR / "model1.pkl"
+model_path = BASE_DIR / "model2.pkl"
 
 df = pd.read_csv(data_path, sep=";")
 
