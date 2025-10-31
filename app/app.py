@@ -67,7 +67,7 @@ else:
 
 # Path aman untuk data dan model
 data_path = BASE_DIR / "Data" / "Rakamin Bootcamp - Dataset - Promotion Dataset.csv"
-model_path = BASE_DIR / "app" / "model.pkl"
+model_path = BASE_DIR / "model.pkl"
 
 # Load data dan model
 df = pd.read_csv(data_path)
