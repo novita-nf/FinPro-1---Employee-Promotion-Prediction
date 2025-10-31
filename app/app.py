@@ -47,7 +47,6 @@ with open(model_path, "rb") as f:
 # 3️⃣ HEADER
 # ===============================
 logo_path = BASE_DIR / "ALGORANGER 2 Logo with Graph and Hat (1).png"
-
 col1, col2 = st.columns([1, 5])
 with col1:
     st.image(str(logo_path), width=85)
@@ -57,14 +56,11 @@ with col2:
 st.markdown("---")
 
 # ===============================
-# 4️⃣ SIMPLE LOGIN
+# 4️⃣ SIMPLE ADMIN LOGIN
 # ===============================
-st.sidebar.subheader("🔒 Login")
-password = st.sidebar.text_input("Enter password", type="password")
-
-if password != "0000":
-    st.warning("Please enter the correct password to access dashboard.")
-    st.stop()
+st.sidebar.subheader("🔒 Admin Login")
+password = st.sidebar.text_input("Enter admin password", type="password")
+is_admin = password == "0000"
 
 # ===============================
 # 5️⃣ SIDEBAR NAVIGATION
@@ -141,30 +137,45 @@ if menu == "Promotion":
             result = "✅ Eligible for Promotion" if prediction == 1 else "❌ Not Eligible for Promotion"
             st.success(f"**Prediction for {emp_id}: {result}**")
 
-    # --- Batch CSV Prediction ---
+    # ===============================
+    # 7️⃣ ADMIN DATA INPUT / UPLOAD
+    # ===============================
     st.markdown("---")
-    st.subheader("📤 Upload CSV for Batch Promotion Prediction")
-    uploaded_file = st.file_uploader("Upload your employee data (CSV with same structure)", type=["csv"])
+    st.subheader("🔑 Admin: Input Data Employee Baru / Batch Upload")
 
-    if uploaded_file:
-        try:
-            new_df = pd.read_csv(uploaded_file, sep=";", engine="python")
-            st.write("✅ File uploaded successfully! Preview:")
-            st.dataframe(new_df.head())
+    if is_admin:
+        # --- Manual Input Form ---
+        st.markdown("### 📝 Input Employee Data Manually")
+        with st.form("manual_input_form"):
+            emp_id = st.text_input("Employee ID (Format: EMPXXXX)")
+            position = st.selectbox("Current Position Level", df["Current_Position_Level"].unique())
+            perf_score = st.number_input("Performance Score (1-5)", min_value=1, max_value=5, step=1)
+            years = st.number_input("Years at Company", min_value=0, max_value=50, step=1)
+            submit_manual = st.form_submit_button("Submit Manual Data")
 
-            new_X = new_df.drop(columns=["Promotion_Eligible", "Employee_ID"], errors="ignore")
-            new_df["Predicted_Promotion"] = model.predict(new_X)
+            if submit_manual:
+                new_row = pd.DataFrame({
+                    "Employee_ID": [emp_id],
+                    "Current_Position_Level": [position],
+                    "Performance_Score": [perf_score],
+                    "Years_at_Company": [years]
+                })
+                new_X = new_row.drop(columns=["Employee_ID"])
+                pred = model.predict(new_X)[0]
+                st.success(f"Predicted Promotion for {emp_id}: {'✅ Eligible' if pred==1 else '❌ Not Eligible'}")
+                st.dataframe(new_row.assign(Predicted_Promotion=pred))
 
-            st.markdown("### Prediction Results")
-            st.dataframe(new_df[["Employee_ID", "Predicted_Promotion"]])
-
-            promo_summary = new_df["Predicted_Promotion"].value_counts()
-            fig3, ax3 = plt.subplots()
-            promo_summary.plot(kind="bar", color=["#f28e2b", "#4e79a7"], ax=ax3)
-            ax3.set_title("Promotion Prediction Summary")
-            ax3.set_xlabel("Predicted Promotion (0=No, 1=Yes)")
-            ax3.set_ylabel("Employee Count")
-            st.pyplot(fig3)
-
-        except Exception as e:
-            st.error(f"⚠️ Error processing uploaded file: {e}")
+        # --- Batch CSV Upload ---
+        st.markdown("### 📤 Upload CSV for Batch Employee Data")
+        uploaded_file = st.file_uploader("Upload CSV with proper columns", type=["csv"])
+        if uploaded_file:
+            try:
+                batch_df = pd.read_csv(uploaded_file, sep=";")
+                batch_X = batch_df.drop(columns=["Employee_ID"], errors="ignore")
+                batch_df["Predicted_Promotion"] = model.predict(batch_X)
+                st.success("✅ Batch prediction done!")
+                st.dataframe(batch_df)
+            except Exception as e:
+                st.error(f"⚠️ Error processing uploaded file: {e}")
+    else:
+        st.info("Enter admin password to enable data input/upload section.")
