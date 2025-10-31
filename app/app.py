@@ -65,7 +65,7 @@ else:
     BASE_DIR = Path(os.getcwd())
 
 data_path = BASE_DIR.parent / "Data" / "Rakamin Bootcamp - Dataset - Promotion Dataset.csv"
-model_path = BASE_DIR / "model.pkl"
+model_path = BASE_DIR / "model (1).pkl" 
 
 df = pd.read_csv(data_path, sep=";")
 model = joblib.load(model_path)
