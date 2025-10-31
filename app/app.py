@@ -42,7 +42,7 @@ model_path = BASE_DIR / "model1.pkl"
 
 df = pd.read_csv(data_path, sep=";")
 
-# Load model with cloudpickle
+# Load model
 with open(model_path, "rb") as f:
     model = cloudpickle.load(f)
 
@@ -103,6 +103,7 @@ if menu == "Promotion":
         ax1.set_ylabel("Average Years at Company")
         ax1.set_title("Average Tenure by Position Level")
         st.pyplot(fig1)
+        plt.close(fig1)
 
     with col5:
         stacked_data = df.groupby(["Current_Position_Level", "Promotion_Eligible"])["Performance_Score"].mean().unstack(fill_value=0)
@@ -112,6 +113,44 @@ if menu == "Promotion":
         ax2.set_ylabel("Average Performance Score")
         ax2.set_title("Performance Score by Position Level and Promotion Eligibility")
         st.pyplot(fig2)
+        plt.close(fig2)
+
+    # --- Additional Visualizations ---
+    st.markdown("### Additional Insights")
+
+    col6, col7 = st.columns(2)
+
+    # 1️⃣ Histogram Performance Score
+    with col6:
+        fig_hist, ax_hist = plt.subplots()
+        ax_hist.hist(df["Performance_Score"], bins=10, color="#4e79a7", edgecolor="black")
+        ax_hist.set_xlabel("Performance Score")
+        ax_hist.set_ylabel("Employee Count")
+        ax_hist.set_title("Distribution of Performance Scores")
+        st.pyplot(fig_hist)
+        plt.close(fig_hist)
+
+    # 2️⃣ Promotion Readiness per Department
+    if "Department" in df.columns:
+        with col7:
+            dept_summary = df.groupby("Department")["Promotion_Eligible"].mean() * 100
+            fig_dept, ax_dept = plt.subplots()
+            dept_summary.plot(kind="bar", color="#f28e2b", ax=ax_dept)
+            ax_dept.set_ylabel("Promotion Readiness (%)")
+            ax_dept.set_xlabel("Department")
+            ax_dept.set_title("Promotion Readiness by Department")
+            st.pyplot(fig_dept)
+            plt.close(fig_dept)
+
+    # 3️⃣ Leadership Score Distribution
+    with col6:
+        fig_lead, ax_lead = plt.subplots()
+        ax_lead.hist(df["Leadership_Score"], bins=5, color="#ff7f0e", edgecolor="black")
+        ax_lead.set_xlabel("Leadership Score")
+        ax_lead.set_ylabel("Employee Count")
+        ax_lead.set_title("Distribution of Leadership Scores")
+        st.pyplot(fig_lead)
+        plt.close(fig_lead)
 
     st.markdown("---")
     st.subheader("Predictive HR - Promotion")
@@ -119,7 +158,6 @@ if menu == "Promotion":
     # --- Prepare Data for Prediction ---
     X = df.drop(columns=["Promotion_Eligible", "Employee_ID"], errors="ignore")
     X = pd.get_dummies(X, drop_first=True)
-
     missing_cols = set(feature_cols) - set(X.columns)
     for col in missing_cols:
         X[col] = 0
@@ -135,7 +173,6 @@ if menu == "Promotion":
     st.markdown("---")
     st.subheader("🔍 Individual Employee Promotion Prediction")
     emp_id = st.text_input("Enter Employee ID (Format: EMPXXXX):")
-
     if emp_id:
         emp_row = df[df["Employee_ID"] == emp_id]
         if emp_row.empty:
@@ -156,7 +193,6 @@ if menu == "Promotion":
     st.markdown("---")
     st.subheader("📤 Upload CSV for Batch Promotion Prediction")
     uploaded_file = st.file_uploader("Upload your employee data (CSV with same structure)", type=["csv"])
-
     if uploaded_file:
         try:
             new_df = pd.read_csv(uploaded_file, sep=";", engine="python")
@@ -173,6 +209,7 @@ if menu == "Promotion":
             st.markdown("### Prediction Results")
             st.dataframe(new_df[["Employee_ID", "Predicted_Promotion"]])
 
+            # --- Summary chart ---
             promo_summary = new_df["Predicted_Promotion"].value_counts()
             fig3, ax3 = plt.subplots()
             promo_summary.plot(kind="bar", color=["#f28e2b", "#4e79a7"], ax=ax3)
@@ -180,6 +217,7 @@ if menu == "Promotion":
             ax3.set_xlabel("Predicted Promotion (0=No, 1=Yes)")
             ax3.set_ylabel("Employee Count")
             st.pyplot(fig3)
+            plt.close(fig3)
 
         except Exception as e:
             st.error(f"⚠️ Error processing uploaded file: {e}")
