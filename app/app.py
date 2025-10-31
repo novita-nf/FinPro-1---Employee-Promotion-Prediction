@@ -39,15 +39,9 @@ model_path = BASE_DIR / "model2.pkl"
 
 df = pd.read_csv(data_path, sep=";")
 
-# Load model RandomForest dengan cloudpickle
+# Load model RandomForest pipeline dengan cloudpickle
 with open(model_path, "rb") as f:
     model = cloudpickle.load(f)
-
-# Feature columns dari model
-if hasattr(model, "feature_names_in_"):
-    feature_cols = model.feature_names_in_
-else:
-    feature_cols = df.drop(columns=["Promotion_Eligible", "Employee_ID"], errors="ignore").columns
 
 # ===============================
 # 3️⃣ HEADER
@@ -115,15 +109,11 @@ if menu == "Promotion":
 
     # --- Prepare Data for Prediction ---
     X = df.drop(columns=["Promotion_Eligible", "Employee_ID"], errors="ignore")
-    X = pd.get_dummies(X, drop_first=True)
 
-    missing_cols = set(feature_cols) - set(X.columns)
-    for col in missing_cols:
-        X[col] = 0
-    X = X[feature_cols]
+    # Pipeline sudah handle encoding, jadi langsung predict
+    df["Predicted_Promotion"] = model.predict(X)
 
     # --- Top 5 Recommendations ---
-    df["Predicted_Promotion"] = model.predict(X)
     top5 = df[df["Predicted_Promotion"] == 1].head(5)
     st.markdown("### Top 5 Employees Recommended for Promotion")
     st.table(top5[["Employee_ID", "Current_Position_Level", "Performance_Score", "Predicted_Promotion"]])
@@ -139,12 +129,6 @@ if menu == "Promotion":
             st.warning("Employee ID not found. Please check the format (e.g., EMP0001).")
         else:
             emp_X = emp_row.drop(columns=["Promotion_Eligible", "Employee_ID"], errors="ignore")
-            emp_X = pd.get_dummies(emp_X, drop_first=True)
-            for col in missing_cols:
-                if col not in emp_X.columns:
-                    emp_X[col] = 0
-            emp_X = emp_X[feature_cols]
-
             prediction = model.predict(emp_X)[0]
             result = "✅ Eligible for Promotion" if prediction == 1 else "❌ Not Eligible for Promotion"
             st.success(f"**Prediction for {emp_id}: {result}**")
@@ -160,13 +144,9 @@ if menu == "Promotion":
             st.write("✅ File uploaded successfully! Preview:")
             st.dataframe(new_df.head())
 
-            new_X = pd.get_dummies(new_df.drop(columns=["Promotion_Eligible", "Employee_ID"], errors="ignore"), drop_first=True)
-            for col in missing_cols:
-                if col not in new_X.columns:
-                    new_X[col] = 0
-            new_X = new_X[feature_cols]
-
+            new_X = new_df.drop(columns=["Promotion_Eligible", "Employee_ID"], errors="ignore")
             new_df["Predicted_Promotion"] = model.predict(new_X)
+
             st.markdown("### Prediction Results")
             st.dataframe(new_df[["Employee_ID", "Predicted_Promotion"]])
 
