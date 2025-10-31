@@ -14,7 +14,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# Custom CSS for modern blue theme
 st.markdown("""
     <style>
         [data-testid="stAppViewContainer"] {
@@ -57,24 +56,19 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-
 # ===============================
 # 2️⃣ LOAD DATA & MODEL
 # ===============================
-# Path absolut ke folder tempat app.py berada
 if "__file__" in globals():
     BASE_DIR = Path(__file__).parent
 else:
     BASE_DIR = Path(os.getcwd())
 
-# Path aman
 data_path = BASE_DIR.parent / "Data" / "Rakamin Bootcamp - Dataset - Promotion Dataset.csv"
 model_path = BASE_DIR / "model.pkl"
 
-# Load data dan model
 df = pd.read_csv(data_path, sep=";")
 model = joblib.load(model_path)
-
 
 # ===============================
 # 3️⃣ HEADER
@@ -89,7 +83,6 @@ with col2:
 
 st.markdown("---")
 
-
 # ===============================
 # 4️⃣ SIDEBAR NAVIGATION
 # ===============================
@@ -98,7 +91,6 @@ menu = st.sidebar.radio(
     ["General Dashboard", "Talent Development", "Promotion", "Absency", "Recruitment"],
     index=2
 )
-
 
 # ===============================
 # 5️⃣ TAB: PROMOTION DASHBOARD
@@ -123,46 +115,42 @@ if menu == "Promotion":
 
     with col4:
         exp_by_level = df.groupby("Current_Position_Level")["Years_at_Company"].mean()
-        st.bar_chart(exp_by_level)
+        fig, ax = plt.subplots()
+        exp_by_level.plot(kind="bar", color="#0078d4", ax=ax)
+        ax.set_xlabel("Current Position Level")
+        ax.set_ylabel("Average Years at Company")
+        ax.set_title("Average Experience by Position Level")
+        st.pyplot(fig)
 
     with col5:
-        # Pastikan kategori posisi dikonversi ke numerik untuk scatter
-        df["Current_Position_Level"] = df["Current_Position_Level"].astype("category")
-        level_codes = df["Current_Position_Level"].cat.codes
-        level_labels = df["Current_Position_Level"].cat.categories
-
-        fig, ax = plt.subplots()
-        ax.scatter(
-            level_codes,
-            df["Performance_Score"],
-            s=df["Promotion_Eligible"] * 200 + 40,
-            alpha=0.6,
-            c="#0078d4"
+        # Stacked bar: Performance Score vs Promotion Eligibility
+        perf_stack = df.groupby(["Current_Position_Level", "Promotion_Eligible"])["Performance_Score"].mean().unstack()
+        perf_stack.plot(
+            kind="bar",
+            stacked=True,
+            color=["#f28e2b", "#4e79a7"],
+            figsize=(6, 4)
         )
-        ax.set_xlabel("Current Position Level")
-        ax.set_ylabel("Performance Score")
-        ax.set_title("Performance vs. Promotion Eligibility")
-
-        # Ganti angka di sumbu X dengan label posisi asli
-        ax.set_xticks(range(len(level_labels)))
-        ax.set_xticklabels(level_labels, rotation=30, ha="right")
-
-        st.pyplot(fig)
+        plt.title("Performance Score by Position Level (Stacked by Eligibility)")
+        plt.xlabel("Current Position Level")
+        plt.ylabel("Average Performance Score")
+        plt.legend(["Not Eligible", "Eligible"])
+        st.pyplot(plt)
 
     st.markdown("---")
     st.subheader("Predictive HR - Promotion")
 
-    # ===============================
-    # 6️⃣ TOP 5 PROMOTION RECOMMENDATION
-    # ===============================
-    try:
-        df_model = df.select_dtypes(include=["number"]).copy()
-        df["Predicted_Promotion"] = model.predict(df_model)
-    except Exception as e:
-        st.error(f"Prediction failed: {e}")
-        df["Predicted_Promotion"] = 0
+    # --- Align features for prediction ---
+    feature_cols = (
+        model.feature_names_in_
+        if hasattr(model, "feature_names_in_")
+        else df.drop(columns=["Promotion_Eligible"], errors="ignore").columns
+    )
+    X = df.reindex(columns=feature_cols, fill_value=0)
 
+    df["Predicted_Promotion"] = model.predict(X)
     top5 = df[df["Predicted_Promotion"] == 1].head(5)
+
     st.markdown("### Top 5 Employees Recommended for Promotion")
     st.table(top5[["Employee_ID", "Current_Position_Level", "Performance_Score", "Predicted_Promotion"]])
 
@@ -170,96 +158,61 @@ if menu == "Promotion":
     # 7️⃣ CEK EMPLOYEE INDIVIDUAL
     # ===============================
     st.markdown("---")
-    st.subheader("Check Employee Promotion Eligibility")
+    st.subheader("Check Employee Promotion Eligibility (Format: EMPXXXX)")
 
-    emp_id_input = st.text_input("Enter Employee ID to check promotion status:")
+    emp_id_input = st.text_input("Enter Employee ID:")
 
     if emp_id_input:
         if emp_id_input in df["Employee_ID"].astype(str).values:
-            st.success(f"Employee ID **{emp_id_input}** found in dataset.")
-
             emp_data = df[df["Employee_ID"].astype(str) == emp_id_input]
+            st.success(f"Employee ID **{emp_id_input}** found in dataset.")
             st.dataframe(emp_data)
 
-            # Pastikan kolom sesuai model
-            emp_features = emp_data.select_dtypes(include=["number"])
-            prediction = model.predict(emp_features)[0]
+            emp_features = emp_data.reindex(columns=feature_cols, fill_value=0)
 
-            if prediction == 1:
-                st.markdown("### ✅ Eligible for Promotion")
-            else:
-                st.markdown("### ⚠️ Not Eligible for Promotion Yet")
+            try:
+                prediction = model.predict(emp_features)[0]
+                if prediction == 1:
+                    st.markdown("### ✅ Eligible for Promotion")
+                else:
+                    st.markdown("### ❌ Not Eligible for Promotion Yet")
+            except Exception as e:
+                st.error(f"Prediction failed: {e}")
 
             st.caption(f"Prediction generated on: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}")
-
         else:
             st.warning(f"Employee ID **{emp_id_input}** not found in dataset.")
-            st.info("Please add this employee in the input form below or upload CSV.")
-
+            st.info("Please add this employee in the input form below or upload CSV below.")
 
     # ===============================
-    # 8️⃣ INPUT SECTION (MANUAL + CSV)
+    # 8️⃣ UPLOAD CSV FOR BATCH PREDICTION
     # ===============================
     st.markdown("---")
-    st.subheader("🔒 Employee Input Prediction")
+    st.subheader("📤 Upload CSV for Batch Promotion Prediction")
 
-    login_user = st.text_input("Login ID")
-    login_pass = st.text_input("Password", type="password")
+    uploaded_file = st.file_uploader("Upload your employee data (CSV with same structure)", type=["csv"])
 
-    if login_user == "0000" and login_pass == "0000":
-        st.success("Login successful ✅")
+    if uploaded_file:
+        try:
+            new_df = pd.read_csv(uploaded_file, sep=None, engine="python")
+            st.write("✅ File uploaded successfully! Preview:")
+            st.dataframe(new_df.head())
 
-        st.markdown("### 📋 Add New Employee Data Manually or Upload CSV")
+            # Align columns to model features
+            new_X = new_df.reindex(columns=feature_cols, fill_value=0)
+            new_df["Predicted_Promotion"] = model.predict(new_X)
 
-        input_method = st.radio(
-            "Choose input method:",
-            ["Manual Entry", "Upload CSV"]
-        )
+            st.markdown("### Prediction Results")
+            st.dataframe(new_df[["Employee_ID", "Predicted_Promotion"]])
 
-        if input_method == "Manual Entry":
-            colA, colB = st.columns(2)
-            with colA:
-                emp_id = st.text_input("Employee ID")
-                age = st.number_input("Age", 18, 65, 30)
-                years = st.number_input("Years at Company", 0, 40, 5)
-                perf = st.number_input("Performance Score (1-5)", 1, 5, 3)
-                lead = st.number_input("Leadership Score (0-100)", 0, 100, 50)
-            with colB:
-                train = st.number_input("Training Hours", 0, 200, 40)
-                projects = st.number_input("Projects Handled", 0, 50, 5)
-                peer = st.number_input("Peer Review Score (0-100)", 0, 100, 60)
-                pos = st.selectbox("Current Position Level", ["Junior", "Mid", "Senior", "Lead"])
+            # Summary chart
+            promo_summary = new_df["Predicted_Promotion"].value_counts()
+            fig, ax = plt.subplots()
+            promo_summary.plot(kind="bar", color=["#f28e2b", "#4e79a7"], ax=ax)
+            ax.set_title("Promotion Prediction Summary")
+            ax.set_xlabel("Predicted Promotion (0=No, 1=Yes)")
+            ax.set_ylabel("Employee Count")
+            st.pyplot(fig)
 
-            if st.button("Predict Promotion Eligibility"):
-                new_data = pd.DataFrame([{
-                    "Age": age,
-                    "Years_at_Company": years,
-                    "Performance_Score": perf,
-                    "Leadership_Score": lead,
-                    "Training_Hours": train,
-                    "Projects_Handled": projects,
-                    "Peer_Review_Score": peer,
-                }])
-
-                prediction = model.predict(new_data)[0]
-                if prediction == 1:
-                    st.success("✅ This employee is likely **Eligible for Promotion**.")
-                else:
-                    st.warning("This employee is **Not Yet Eligible** for promotion.")
-
-        elif input_method == "Upload CSV":
-            uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
-            if uploaded_file is not None:
-                new_df = pd.read_csv(uploaded_file, sep=";")
-                st.write("Uploaded Data Preview:", new_df.head())
-
-                try:
-                    new_df_model = new_df.select_dtypes(include=["number"])
-                    preds = model.predict(new_df_model)
-                    new_df["Predicted_Promotion"] = preds
-                    st.success("✅ Predictions generated successfully!")
-                    st.dataframe(new_df)
-                except Exception as e:
-                    st.error(f"Prediction failed: {e}")
-    else:
-        st.info("Please login with ID: 0000 and Password: 0000 to access prediction input.")
+        except Exception as e:
+            st.error(f"⚠️ Error processing uploaded file: {e}")
