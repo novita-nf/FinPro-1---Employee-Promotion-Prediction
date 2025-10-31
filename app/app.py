@@ -39,7 +39,7 @@ model_path = BASE_DIR / "model2.pkl"
 
 df = pd.read_csv(data_path, sep=";")
 
-# Load model RandomForest pipeline dengan cloudpickle
+# Load model pipeline dengan cloudpickle
 with open(model_path, "rb") as f:
     model = cloudpickle.load(f)
 
@@ -57,7 +57,17 @@ with col2:
 st.markdown("---")
 
 # ===============================
-# 4️⃣ SIDEBAR NAVIGATION
+# 4️⃣ SIMPLE LOGIN
+# ===============================
+st.sidebar.subheader("🔒 Login")
+password = st.sidebar.text_input("Enter password", type="password")
+
+if password != "0000":
+    st.warning("Please enter the correct password to access dashboard.")
+    st.stop()
+
+# ===============================
+# 5️⃣ SIDEBAR NAVIGATION
 # ===============================
 menu = st.sidebar.radio(
     "Navigation",
@@ -66,7 +76,7 @@ menu = st.sidebar.radio(
 )
 
 # ===============================
-# 5️⃣ PROMOTION DASHBOARD
+# 6️⃣ PROMOTION DASHBOARD
 # ===============================
 if menu == "Promotion":
     st.subheader("HR - Promotion Dashboard")
@@ -109,8 +119,6 @@ if menu == "Promotion":
 
     # --- Prepare Data for Prediction ---
     X = df.drop(columns=["Promotion_Eligible", "Employee_ID"], errors="ignore")
-
-    # Pipeline sudah handle encoding, jadi langsung predict
     df["Predicted_Promotion"] = model.predict(X)
 
     # --- Top 5 Recommendations ---
