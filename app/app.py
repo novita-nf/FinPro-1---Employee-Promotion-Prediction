@@ -63,10 +63,10 @@ st.markdown("""
 if "__file__" in globals():
     BASE_DIR = Path(__file__).parent
 else:
-    BASE_DIR = Path(os.getcwd())  # fallback kalau Streamlit cloud tidak punya __file__
+    BASE_DIR = Path(os.getcwd())
 
-# Path aman untuk data dan model
-data_path = BASE_DIR / "Data" / "Rakamin Bootcamp - Dataset - Promotion Dataset.csv"
+# Path aman
+data_path = BASE_DIR.parent / "Data" / "Rakamin Bootcamp - Dataset - Promotion Dataset.csv"
 model_path = BASE_DIR / "model.pkl"
 
 # Load data dan model
