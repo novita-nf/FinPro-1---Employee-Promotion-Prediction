@@ -58,17 +58,26 @@ st.markdown("""
 # ===============================
 # 2️. LOAD DATA / MODEL
 # ===============================
-data_path = "Data/Rakamin Bootcamp - Dataset - Promotion Dataset.csv"
-model_path = "app/model.pkl"
+# Path absolut ke folder tempat app.py berada
+BASE_DIR = Path(__file__).parent
+
+# Path untuk data dan model
+data_path = BASE_DIR / "Data" / "Rakamin Bootcamp - Dataset - Promotion Dataset.csv"
+model_path = BASE_DIR / "model.pkl"
+
+# Load data dan model
 df = pd.read_csv(data_path)
 model = joblib.load(model_path)
 
 # ===============================
 # 3️. HEADER
 # ===============================
+# Path absolut file logo relatif terhadap lokasi app.py
+logo_path = Path(__file__).parent / "ALGORANGER 2 Logo with Graph and Hat (1).png"
+
 col1, col2 = st.columns([1, 5])
 with col1:
-    st.image("ALGORANGER 2 Logo with Graph and Hat (1).png", width=85)
+    st.image(str(logo_path), width=85)
 with col2:
     st.markdown('<div class="main-header">HR Dashboard - ABC Company</div>', unsafe_allow_html=True)
 
