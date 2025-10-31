@@ -122,19 +122,29 @@ if menu == "Promotion":
         exp_by_level = df.groupby("Current_Position_Level")["Years_at_Company"].mean()
         st.bar_chart(exp_by_level)
 
-    with col5:
-        fig, ax = plt.subplots()
-        ax.scatter(
-            df["Current_Position_Level"],
-            df["Performance_Score"],
-            s=df["Promotion_Eligible"] * 200 + 40,
-            alpha=0.6,
-            c="#0078d4"
-        )
-        ax.set_xlabel("Current Position Level")
-        ax.set_ylabel("Performance Score")
-        ax.set_title("Performance vs. Promotion Eligibility")
-        st.pyplot(fig)
+   with col5:
+    # Pastikan kategori posisi dikonversi ke numerik untuk scatter
+    df["Current_Position_Level"] = df["Current_Position_Level"].astype("category")
+    level_codes = df["Current_Position_Level"].cat.codes
+    level_labels = df["Current_Position_Level"].cat.categories
+
+    fig, ax = plt.subplots()
+    ax.scatter(
+        level_codes,
+        df["Performance_Score"],
+        s=df["Promotion_Eligible"] * 200 + 40,
+        alpha=0.6,
+        c="#0078d4"
+    )
+    ax.set_xlabel("Current Position Level")
+    ax.set_ylabel("Performance Score")
+    ax.set_title("Performance vs. Promotion Eligibility")
+
+    # Ganti angka di sumbu X dengan label posisi asli
+    ax.set_xticks(range(len(level_labels)))
+    ax.set_xticklabels(level_labels, rotation=30, ha="right")
+
+    st.pyplot(fig)
 
     st.markdown("---")
     st.subheader("Predictive HR - Promotion")
