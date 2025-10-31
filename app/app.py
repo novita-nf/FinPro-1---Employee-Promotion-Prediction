@@ -7,7 +7,7 @@ import joblib
 import matplotlib.pyplot as plt
 
 # ===============================
-# 1. CONFIG & THEME
+# 1️⃣ CONFIG & THEME
 # ===============================
 st.set_page_config(
     page_title="HR Dashboard - ABC Company",
@@ -57,8 +57,9 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+
 # ===============================
-# 2️. LOAD DATA / MODEL
+# 2️⃣ LOAD DATA & MODEL
 # ===============================
 # Path absolut ke folder tempat app.py berada
 if "__file__" in globals():
@@ -74,8 +75,9 @@ model_path = BASE_DIR / "model.pkl"
 df = pd.read_csv(data_path, sep=";")
 model = joblib.load(model_path)
 
+
 # ===============================
-# 3️. HEADER
+# 3️⃣ HEADER
 # ===============================
 # Path absolut file logo relatif terhadap lokasi app.py
 logo_path = Path(__file__).parent / "ALGORANGER 2 Logo with Graph and Hat (1).png"
@@ -88,8 +90,9 @@ with col2:
 
 st.markdown("---")
 
+
 # ===============================
-# 4️. SIDEBAR NAVIGATION
+# 4️⃣ SIDEBAR NAVIGATION
 # ===============================
 menu = st.sidebar.radio(
     "Navigation",
@@ -97,8 +100,9 @@ menu = st.sidebar.radio(
     index=2
 )
 
+
 # ===============================
-# 5️. TAB: PROMOTION DASHBOARD
+# 5️⃣ TAB: PROMOTION DASHBOARD
 # ===============================
 if menu == "Promotion":
     st.subheader("HR - Promotion Dashboard")
@@ -122,29 +126,29 @@ if menu == "Promotion":
         exp_by_level = df.groupby("Current_Position_Level")["Years_at_Company"].mean()
         st.bar_chart(exp_by_level)
 
-   with col5:
-    # Pastikan kategori posisi dikonversi ke numerik untuk scatter
-    df["Current_Position_Level"] = df["Current_Position_Level"].astype("category")
-    level_codes = df["Current_Position_Level"].cat.codes
-    level_labels = df["Current_Position_Level"].cat.categories
+    with col5:
+        # Pastikan kategori posisi dikonversi ke numerik untuk scatter
+        df["Current_Position_Level"] = df["Current_Position_Level"].astype("category")
+        level_codes = df["Current_Position_Level"].cat.codes
+        level_labels = df["Current_Position_Level"].cat.categories
 
-    fig, ax = plt.subplots()
-    ax.scatter(
-        level_codes,
-        df["Performance_Score"],
-        s=df["Promotion_Eligible"] * 200 + 40,
-        alpha=0.6,
-        c="#0078d4"
-    )
-    ax.set_xlabel("Current Position Level")
-    ax.set_ylabel("Performance Score")
-    ax.set_title("Performance vs. Promotion Eligibility")
+        fig, ax = plt.subplots()
+        ax.scatter(
+            level_codes,
+            df["Performance_Score"],
+            s=df["Promotion_Eligible"] * 200 + 40,
+            alpha=0.6,
+            c="#0078d4"
+        )
+        ax.set_xlabel("Current Position Level")
+        ax.set_ylabel("Performance Score")
+        ax.set_title("Performance vs. Promotion Eligibility")
 
-    # Ganti angka di sumbu X dengan label posisi asli
-    ax.set_xticks(range(len(level_labels)))
-    ax.set_xticklabels(level_labels, rotation=30, ha="right")
+        # Ganti angka di sumbu X dengan label posisi asli
+        ax.set_xticks(range(len(level_labels)))
+        ax.set_xticklabels(level_labels, rotation=30, ha="right")
 
-    st.pyplot(fig)
+        st.pyplot(fig)
 
     st.markdown("---")
     st.subheader("Predictive HR - Promotion")
@@ -177,13 +181,12 @@ if menu == "Promotion":
             )[0]
 
             if prediction == 1:
-                st.markdown("### Eligible for Promotion")
+                st.markdown("### ✅ Eligible for Promotion")
             else:
                 st.markdown("###Not Eligible for Promotion Yet")
 
             st.caption(f"Prediction generated on: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
         else:
-            st.warning(f" Employee ID **{emp_id_input}** not found in dataset.")
+            st.warning(f"Employee ID **{emp_id_input}** not found in dataset.")
             st.info("Please add this employee in the input form below or update the dataset.")
-
