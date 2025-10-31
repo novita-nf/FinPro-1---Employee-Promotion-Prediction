@@ -1,4 +1,116 @@
-# --- Career Progression ---
+# app.py
+import os
+from pathlib import Path
+import streamlit as st
+import pandas as pd
+import joblib
+import matplotlib.pyplot as plt
+
+# ===============================
+# 1️⃣ CONFIG & THEME
+# ===============================
+st.set_page_config(
+    page_title="HR Dashboard - ABC Company",
+    layout="wide"
+)
+
+st.markdown("""
+    <style>
+        [data-testid="stAppViewContainer"] {
+            background-color: #f7faff;
+        }
+        [data-testid="stSidebar"] {
+            background-color: #0f4c81;
+            color: white;
+        }
+        [data-testid="stSidebar"] * {
+            color: white !important;
+        }
+        .main-header {
+            background-color: #0078d4;
+            padding: 12px;
+            border-radius: 10px;
+            color: white;
+            font-size: 26px;
+            font-weight: bold;
+            text-align: center;
+        }
+        h3 {
+            color: #0f4c81;
+        }
+        div[data-testid="stMetricValue"] {
+            color: #0078d4;
+        }
+        div.stButton > button {
+            background-color: #0078d4;
+            color: white;
+            border-radius: 8px;
+            height: 3em;
+            font-weight: 600;
+            border: none;
+        }
+        div.stButton > button:hover {
+            background-color: #0f4c81;
+            color: #f0f0f0;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# ===============================
+# 2️⃣ LOAD DATA & MODEL
+# ===============================
+if "__file__" in globals():
+    BASE_DIR = Path(__file__).parent
+else:
+    BASE_DIR = Path(os.getcwd())
+
+data_path = BASE_DIR.parent / "Data" / "Rakamin Bootcamp - Dataset - Promotion Dataset.csv"
+model_path = BASE_DIR / "model.pkl"
+
+df = pd.read_csv(data_path, sep=";")
+model = joblib.load(model_path)
+
+# ===============================
+# 3️⃣ HEADER
+# ===============================
+logo_path = Path(__file__).parent / "ALGORANGER 2 Logo with Graph and Hat (1).png"
+
+col1, col2 = st.columns([1, 5])
+with col1:
+    st.image(str(logo_path), width=85)
+with col2:
+    st.markdown('<div class="main-header">HR Dashboard - ABC Company</div>', unsafe_allow_html=True)
+
+st.markdown("---")
+
+# ===============================
+# 4️⃣ SIDEBAR NAVIGATION
+# ===============================
+menu = st.sidebar.radio(
+    "Navigation",
+    ["General Dashboard", "Talent Development", "Promotion", "Absency", "Recruitment"],
+    index=2
+)
+
+# ===============================
+# 5️⃣ TAB: PROMOTION DASHBOARD
+# ===============================
+if menu == "Promotion":
+    st.subheader("HR - Promotion Dashboard")
+
+    # --- Metrics Row ---
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Total Employees", len(df))
+    with col2:
+        avg_perf = df["Performance_Score"].mean().round(2)
+        st.metric("Avg Performance Score", f"{avg_perf}/5")
+    with col3:
+        promo_ready = (df["Promotion_Eligible"].sum() / len(df)) * 100
+        st.metric("Promotion Readiness", f"{promo_ready:.1f}%")
+
+    # --- Career Progression ---
+    # --- Career Progression ---
 st.markdown("### Career Progression Insights")
 
 col4, col5 = st.columns(2)
@@ -69,3 +181,37 @@ if emp_id:
         prediction = model.predict(emp_X)[0]
         result = "✅ Eligible for Promotion" if prediction == 1 else "❌ Not Eligible for Promotion"
         st.success(f"**Prediction for {emp_id}: {result}**")
+
+
+    # ===============================
+    # 8️⃣ UPLOAD CSV FOR BATCH PREDICTION
+    # ===============================
+    st.markdown("---")
+    st.subheader("📤 Upload CSV for Batch Promotion Prediction")
+
+    uploaded_file = st.file_uploader("Upload your employee data (CSV with same structure)", type=["csv"])
+
+    if uploaded_file:
+        try:
+            new_df = pd.read_csv(uploaded_file, sep=None, engine="python")
+            st.write("✅ File uploaded successfully! Preview:")
+            st.dataframe(new_df.head())
+
+            # Align columns to model features
+            new_X = new_df.reindex(columns=feature_cols, fill_value=0)
+            new_df["Predicted_Promotion"] = model.predict(new_X)
+
+            st.markdown("### Prediction Results")
+            st.dataframe(new_df[["Employee_ID", "Predicted_Promotion"]])
+
+            # Summary chart
+            promo_summary = new_df["Predicted_Promotion"].value_counts()
+            fig, ax = plt.subplots()
+            promo_summary.plot(kind="bar", color=["#f28e2b", "#4e79a7"], ax=ax)
+            ax.set_title("Promotion Prediction Summary")
+            ax.set_xlabel("Predicted Promotion (0=No, 1=Yes)")
+            ax.set_ylabel("Employee Count")
+            st.pyplot(fig)
+
+        except Exception as e:
+            st.error(f"⚠️ Error processing uploaded file: {e}")
