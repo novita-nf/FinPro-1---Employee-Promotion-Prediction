@@ -96,7 +96,7 @@ if menu == "Promotion":
     # ===============================
     col4, col5, col6 = st.columns(3)
 
-     with col4:
+    with col4:
         exp_by_level = df.groupby("Current_Position_Level")["Years_at_Company"].mean()
         fig1, ax1 = plt.subplots()
         ax1.bar(exp_by_level.index, exp_by_level.values, color="#0078d4")
