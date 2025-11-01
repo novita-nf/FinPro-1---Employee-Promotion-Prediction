@@ -44,9 +44,9 @@ df = pd.read_csv(data_path, sep=";")
 with open(model_path, "rb") as f:
     model = cloudpickle.load(f)
   
-# Drop rows with NaN in Project_Handled (for clean boxplot)
-if "Project_Handled" in df.columns:
-    df = df.dropna(subset=["Project_Handled"])
+# Drop rows with NaN in Projects_Handled (for clean boxplot)
+if "Projects_Handled" in df.columns:
+    df = df.dropna(subset=["Projects_Handled"])
 # ===============================
 # 3️⃣ HEADER
 # ===============================
@@ -81,11 +81,12 @@ if menu == "Promotion":
         avg_perf = df["Performance_Score"].mean().round(2)
         st.metric("Avg Performance Score", f"{avg_perf}/5")
     with col3:
-        st.metric("Promotion Readiness", f"{promo_counts:.1f}%")
+        
         promo_counts = df["Promotion_Eligible"].value_counts()
         fig_pie, ax_pie = plt.subplots(figsize=(2.2, 2.2))
         ax_pie.pie(promo_counts, labels=["Not Eligible", "Eligible"], autopct="%1.1f%%", startangle=90, colors=["#ff7f0e", "#1f77b4"])
         st.pyplot(fig_pie)
+        st.metric("Promotion Readiness", f"{promo_counts:.1f}%")
 
     st.markdown("---")
     st.markdown("### Career Progression Insights")
