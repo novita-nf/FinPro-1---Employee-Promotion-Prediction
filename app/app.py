@@ -1,6 +1,3 @@
-# ======================================================
-# app.py — HR Promotion Dashboard (Final Full Version)
-# ======================================================
 import os
 from pathlib import Path
 import streamlit as st
@@ -70,30 +67,30 @@ menu = st.sidebar.radio("Navigation",
 if menu == "Promotion":
     st.subheader("HR - Promotion Dashboard")
 
-    # --- Metrics ---
-    col1, col2, col3 = st.columns(3)
+    # --- Metrics and Mini Pie ---
+    col1, col2, col3 = st.columns([1.5, 1.5, 1])
     with col1:
         st.metric("Total Employees", len(df))
     with col2:
         avg_perf = df["Performance_Score"].mean().round(2)
         st.metric("Avg Performance Score", f"{avg_perf}/5")
     with col3:
-        promo_ready = (df["Promotion_Eligible"].sum() / len(df)) * 100
-        st.metric("Promotion Readiness", f"{promo_ready:.1f}%")
+        promo_eligible = (df["Promotion_Eligible"].sum() / len(df)) * 100
+        st.metric("Promotion Eligibility", f"{promo_eligible:.1f}%")
 
-    # --- Pie Chart: Promotion Eligible vs Not ---
-    st.markdown("### Promotion Eligibility Distribution")
-    promo_counts = df["Promotion_Eligible"].value_counts()
-    fig_pie, ax_pie = plt.subplots()
-    ax_pie.pie(
-        promo_counts,
-        labels=["Not Eligible", "Eligible"],
-        autopct="%1.1f%%",
-        startangle=90,
-        colors=["#ff7f0e", "#1f77b4"]
-    )
-    ax_pie.set_title("Promotion Eligibility %")
-    st.pyplot(fig_pie)
+        # Pie kecil
+        promo_counts = df["Promotion_Eligible"].value_counts()
+        fig_pie, ax_pie = plt.subplots(figsize=(2.2, 2.2))
+        ax_pie.pie(
+            promo_counts,
+            labels=["Not Eligible", "Eligible"],
+            autopct="%1.1f%%",
+            startangle=90,
+            textprops={'fontsize': 8},
+            colors=["#ff7f0e", "#1f77b4"]
+        )
+        ax_pie.set_title("Eligibility", fontsize=9)
+        st.pyplot(fig_pie)
 
     st.markdown("---")
     st.markdown("### Career Progression Insights")
@@ -108,7 +105,7 @@ if menu == "Promotion":
         perf_data.plot(kind="bar", ax=ax_perf, color=["#ff7f0e", "#1f77b4"], width=0.7)
         ax_perf.set_xlabel("Current Position Level")
         ax_perf.set_ylabel("Avg Performance Score")
-        ax_perf.set_title("Performance Score by Position Level and Eligibility")
+        ax_perf.set_title("Performance Score by Position & Eligibility")
 
         for container in ax_perf.containers:
             ax_perf.bar_label(container, fmt="%.2f", label_type="center")
@@ -119,33 +116,41 @@ if menu == "Promotion":
     # Bar Chart 2: Leadership Score
     # ===============================
     with col5:
-        lead_data = df.groupby(["Current_Position_Level", "Promotion_Eligible"])["Leadership_Score"].mean().unstack(fill_value=0)
-        fig_lead, ax_lead = plt.subplots()
-        lead_data.plot(kind="bar", ax=ax_lead, color=["#2ca02c", "#9467bd"], width=0.7)
-        ax_lead.set_xlabel("Current Position Level")
-        ax_lead.set_ylabel("Avg Leadership Score")
-        ax_lead.set_title("Leadership Score by Position Level and Eligibility")
+        if "Leadership_Score" in df.columns:
+            lead_data = df.groupby(["Current_Position_Level", "Promotion_Eligible"])["Leadership_Score"].mean().unstack(fill_value=0)
+            fig_lead, ax_lead = plt.subplots()
+            lead_data.plot(kind="bar", ax=ax_lead, color=["#2ca02c", "#9467bd"], width=0.7)
+            ax_lead.set_xlabel("Current Position Level")
+            ax_lead.set_ylabel("Avg Leadership Score")
+            ax_lead.set_title("Leadership Score by Position & Eligibility")
 
-        for container in ax_lead.containers:
-            ax_lead.bar_label(container, fmt="%.2f", label_type="center")
+            for container in ax_lead.containers:
+                ax_lead.bar_label(container, fmt="%.2f", label_type="center")
 
-        st.pyplot(fig_lead)
+            st.pyplot(fig_lead)
+        else:
+            st.warning("⚠️ Column 'Leadership_Score' not found in dataset.")
 
     # ===============================
     # Boxplot: Project Handled
     # ===============================
-    st.markdown("### Project Handled Distribution by Position and Eligibility")
-    fig_box, ax_box = plt.subplots(figsize=(8, 5))
-    df["Group"] = df["Current_Position_Level"] + " - " + df["Promotion_Eligible"].map({0: "Not Eligible", 1: "Eligible"})
-    df_sorted = df.sort_values("Current_Position_Level")
-    box_data = [df_sorted[df_sorted["Group"] == g]["Project_Handled"] for g in df_sorted["Group"].unique()]
-    ax_box.boxplot(box_data, patch_artist=True,
-                   boxprops=dict(facecolor="#1f77b4", alpha=0.5),
-                   medianprops=dict(color="black"))
-    ax_box.set_xticklabels(df_sorted["Group"].unique(), rotation=45, ha="right")
-    ax_box.set_ylabel("Projects Handled")
-    ax_box.set_title("Projects Handled by Position and Eligibility")
-    st.pyplot(fig_box)
+    st.markdown("### Projects Handled Distribution by Position & Eligibility")
+
+    if "Projects_Handled" in df.columns:
+        df["Group"] = df["Current_Position_Level"] + " - " + df["Promotion_Eligible"].map({0: "Not Eligible", 1: "Eligible"})
+        df_sorted = df.sort_values("Current_Position_Level")
+        fig_box, ax_box = plt.subplots(figsize=(8, 5))
+
+        box_data = [df_sorted[df_sorted["Group"] == g]["Projects_Handled"] for g in df_sorted["Group"].unique()]
+        ax_box.boxplot(box_data, patch_artist=True,
+                       boxprops=dict(facecolor="#1f77b4", alpha=0.5),
+                       medianprops=dict(color="black"))
+        ax_box.set_xticklabels(df_sorted["Group"].unique(), rotation=45, ha="right")
+        ax_box.set_ylabel("Projects Handled")
+        ax_box.set_title("Projects Handled by Position & Eligibility")
+        st.pyplot(fig_box)
+    else:
+        st.warning("⚠️ Column 'Project_Handled' not found in dataset.")
 
     st.markdown("---")
 
