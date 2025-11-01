@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import streamlit as st
 import pandas as pd
+import numpy as np
 import cloudpickle
 import matplotlib.pyplot as plt
 
@@ -154,7 +155,7 @@ if menu == "Promotion":
                                boxprops=dict(facecolor=colors[elig], alpha=0.6),
                                medianprops=dict(color="black"))
 
-        ax_box.set_xticks(range(1.5, len(levels)*2, 2))
+        ax_box.set_xticks(np.arange(1.5, len(levels)*2, 2))
         ax_box.set_xticklabels(levels, rotation=45, ha="right")
         ax_box.set_ylabel("Projects Handled")
         ax_box.set_title("Project Handled Distribution by Seniority Level")
