@@ -134,16 +134,16 @@ if menu == "Promotion":
         st.sidebar.subheader("🔒 Admin Login")
         password = st.sidebar.text_input("Enter admin password", type="password")
         is_admin = password == "0000"
-    # ===============================
-    # 7️. ADMIN DATA INPUT / UPLOAD
-    # ===============================
-    st.markdown("---")
-    st.subheader("Admin: Input Data Employee Baru / Batch Upload")
+        # ===============================
+        # 7️. ADMIN DATA INPUT / UPLOAD
+        # ===============================
+        st.markdown("---")
+        st.subheader("Admin: Input Data Employee Baru / Batch Upload")
 
-    if is_admin:
-        # --- Manual Input Form ---
-        st.markdown("### Input Employee Data Manually")
-        with st.form("manual_input_form"):
+        if is_admin:
+          # --- Manual Input Form ---
+          st.markdown("### Input Employee Data Manually")
+          with st.form("manual_input_form"):
             emp_id = st.text_input("Employee ID (Format: EMPXXXX)")
             position = st.selectbox("Current Position Level", df["Current_Position_Level"].unique())
             perf_score = st.number_input("Performance Score (1-5)", min_value=1, max_value=5, step=1)
