@@ -87,7 +87,13 @@ if menu == "Promotion":
         avg_perf = df["Performance_Score"].mean().round(2)
         st.metric("Avg Performance Score", f"{avg_perf}/5")
     with col3:
-        st.markdown("##### Promotion Eligibility Distribution")
+        st.markdown(
+        """
+        <p style="font-size:16px; font-weight:600; margin-bottom:-10px;">
+            Promotion Eligibility Distribution
+        </p>
+        """,
+        unsafe_allow_html=True)
         promo_counts = df["Promotion_Eligible"].value_counts()
         fig_pie, ax_pie = plt.subplots(figsize=(2.2, 2.2))
         ax_pie.pie(promo_counts, labels=["Not Eligible", "Eligible"],
