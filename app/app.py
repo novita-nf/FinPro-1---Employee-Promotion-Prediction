@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import streamlit as st
 import pandas as pd
+import numpy as np
 import cloudpickle
 import matplotlib.pyplot as plt
 
@@ -40,7 +41,7 @@ df = pd.read_csv(data_path, sep=";")
 with open(model_path, "rb") as f:
     model = cloudpickle.load(f)
 
-# Drop NaN utk Projects_Handled agar boxplot aman
+# Drop NaN untuk kolom Projects_Handled (agar boxplot tidak error)
 if "Projects_Handled" in df.columns:
     df = df.dropna(subset=["Projects_Handled"])
 
@@ -58,25 +59,22 @@ with col2:
 st.markdown("---")
 
 # ===============================
-# 4️⃣ LAYOUT: MAIN & ADMIN
+# 4️⃣ LAYOUT: LEFT NAV + MAIN + RIGHT ADMIN
 # ===============================
-main_col, admin_col = st.columns([4, 1.8])
+left_col, main_col, right_col = st.columns([1.2, 3.6, 1.2])
 
+with left_col:
+    st.markdown("### 🧭 Navigation")
+    menu = st.radio("Go to", ["General Dashboard", "Talent Development", "Promotion", "Absency", "Recruitment"], index=2)
+
+# ===============================
+# 5️⃣ MAIN DASHBOARD
+# ===============================
 with main_col:
-    # ===============================
-    # NAVIGATION BAR (KIRI)
-    # ===============================
-    menu = st.radio("Navigation",
-        ["General Dashboard", "Talent Development", "Promotion", "Absency", "Recruitment"],
-        index=2)
-
-    # ===============================
-    # PROMOTION DASHBOARD
-    # ===============================
     if menu == "Promotion":
         st.subheader("HR - Promotion Dashboard")
 
-        # --- Metrics + Pie Chart ---
+        # --- Metrics + Mini Pie ---
         col1, col2, col3 = st.columns([1.5, 1.5, 1])
         with col1:
             st.metric("Total Employees", len(df))
@@ -85,7 +83,7 @@ with main_col:
             st.metric("Avg Performance Score", f"{avg_perf}/5")
         with col3:
             promo_counts = df["Promotion_Eligible"].value_counts()
-            fig_pie, ax_pie = plt.subplots(figsize=(2.5, 2.5))
+            fig_pie, ax_pie = plt.subplots(figsize=(2.4, 2.4))
             ax_pie.pie(
                 promo_counts,
                 labels=["Not Eligible", "Eligible"],
@@ -105,19 +103,19 @@ with main_col:
 
         colA, colB, colC = st.columns(3)
 
-        # --- Average Tenure (Years_at_Company) by Position ---
+        # --- Average Tenure (Years_at_Company) ---
         with colA:
             exp_by_level = df.groupby("Current_Position_Level")["Years_at_Company"].mean()
             fig1, ax1 = plt.subplots()
             ax1.bar(exp_by_level.index, exp_by_level.values, color="#0078d4")
             ax1.set_xlabel("Current Position Level")
             ax1.set_ylabel("Avg Years at Company")
-            ax1.set_title("Seniority Level vs Years at Company")
+            ax1.set_title("Average Tenure by Position Level")
             for i, val in enumerate(exp_by_level.values):
                 ax1.text(i, val + 0.2, f"{val:.1f}", ha="center")
             st.pyplot(fig1)
 
-        # --- Performance Score ---
+        # --- Performance Score by Level & Eligibility ---
         with colB:
             perf_data = df.groupby(["Current_Position_Level", "Promotion_Eligible"])["Performance_Score"].mean().unstack(fill_value=0)
             fig_perf, ax_perf = plt.subplots()
@@ -129,7 +127,7 @@ with main_col:
                 ax_perf.bar_label(container, fmt="%.2f", label_type="center")
             st.pyplot(fig_perf)
 
-        # --- Leadership Score ---
+        # --- Leadership Score by Level & Eligibility ---
         with colC:
             if "Leadership_Score" in df.columns:
                 lead_data = df.groupby(["Current_Position_Level", "Promotion_Eligible"])["Leadership_Score"].mean().unstack(fill_value=0)
@@ -141,30 +139,34 @@ with main_col:
                 for container in ax_lead.containers:
                     ax_lead.bar_label(container, fmt="%.2f", label_type="center")
                 st.pyplot(fig_lead)
+            else:
+                st.warning("⚠️ Column 'Leadership_Score' not found in dataset.")
 
         # ===============================
         # PROJECTS HANDLED BOX PLOT
         # ===============================
         st.markdown("---")
-        st.markdown("### Projects Handled by Seniority Level")
+        st.markdown("### Projects Handled Distribution by Seniority Level")
 
         if "Projects_Handled" in df.columns:
-            fig_box, ax_box = plt.subplots(figsize=(8, 5))
-            levels = df["Current_Position_Level"].unique()
+            levels = sorted(df["Current_Position_Level"].unique())
             colors = {0: "#ff7f0e", 1: "#1f77b4"}
+            fig_box, ax_box = plt.subplots(figsize=(8, 5))
 
             for i, level in enumerate(levels):
                 for elig in [0, 1]:
-                    data = df[(df["Current_Position_Level"] == level) & (df["Promotion_Eligible"] == elig)]["Projects_Handled"]
-                    if len(data) > 0:
-                        pos = [i * 2 + elig + 1]
-                        ax_box.boxplot(data, positions=pos, patch_artist=True,
+                    subset = df[(df["Current_Position_Level"] == level) & (df["Promotion_Eligible"] == elig)]
+                    data = subset["Projects_Handled"]
+                    if not data.empty:
+                        pos = i * 2 + elig + 1
+                        ax_box.boxplot(data, positions=[pos], patch_artist=True,
                                        boxprops=dict(facecolor=colors[elig], alpha=0.6),
                                        medianprops=dict(color="black"))
 
-            ax_box.set_xticks(range(1.5, len(levels) * 2, 2))
+            ax_box.set_xticks([i * 2 + 1.5 for i in range(len(levels))])
             ax_box.set_xticklabels(levels, rotation=45, ha="right")
             ax_box.set_ylabel("Projects Handled")
+            ax_box.set_title("Projects Handled by Seniority Level")
             handles = [
                 plt.Line2D([0], [0], color=colors[0], lw=4, label='Not Eligible'),
                 plt.Line2D([0], [0], color=colors[1], lw=4, label='Eligible')
@@ -173,7 +175,18 @@ with main_col:
             st.pyplot(fig_box)
 
         # ===============================
-        # INDIVIDUAL PREDICTION
+        # PREDICTIVE HR - TOP 5
+        # ===============================
+        st.markdown("---")
+        st.subheader("Predictive HR - Promotion")
+        X = df.drop(columns=["Promotion_Eligible", "Employee_ID"], errors="ignore")
+        df["Predicted_Promotion"] = model.predict(X)
+        top5 = df[df["Predicted_Promotion"] == 1].head(5)
+        st.markdown("### Top 5 Employees Recommended for Promotion")
+        st.table(top5[["Employee_ID", "Current_Position_Level", "Performance_Score", "Predicted_Promotion"]])
+
+        # ===============================
+        # INDIVIDUAL EMPLOYEE PREDICTION
         # ===============================
         st.markdown("---")
         st.subheader("Individual Employee Promotion Prediction")
@@ -193,9 +206,9 @@ with main_col:
                     st.error(f"Prediction error: {e}")
 
 # ===============================
-# 5️⃣ ADMIN PANEL (KANAN)
+# 🔐 RIGHT SIDEBAR (ADMIN PANEL)
 # ===============================
-with admin_col:
+with right_col:
     st.markdown("### 🔐 Data Input for Employee Promotion Prediction")
     password = st.text_input("Enter Admin Password", type="password")
 
