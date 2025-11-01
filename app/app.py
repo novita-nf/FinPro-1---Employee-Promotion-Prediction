@@ -156,7 +156,7 @@ if menu == "Promotion":
                                medianprops=dict(color="black"))
 
         ax_box.set_xticks(np.arange(1.5, len(levels)*2, 2))
-        ax_box.set_xticklabels(levels, rotation=45, ha="right")
+        ax_box.set_xticklabels(levels, ha="right")
         ax_box.set_ylabel("Projects Handled")
         ax_box.set_title("Project Handled Distribution by Seniority Level")
 
