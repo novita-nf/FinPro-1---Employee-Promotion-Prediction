@@ -7,7 +7,7 @@ import cloudpickle
 import matplotlib.pyplot as plt
 
 # ===============================
-# 1️⃣ CONFIG & THEME
+# 1️. CONFIG & THEME
 # ===============================
 st.set_page_config(page_title="HR Dashboard - ABC Company", layout="wide")
 
@@ -27,7 +27,7 @@ div.stButton > button:hover { background-color: #0f4c81; color: #f0f0f0; }
 """, unsafe_allow_html=True)
 
 # ===============================
-# 2️⃣ LOAD DATA & MODEL
+# 2️. LOAD DATA & MODEL
 # ===============================
 if "__file__" in globals():
     BASE_DIR = Path(__file__).parent
@@ -44,7 +44,7 @@ with open(model_path, "rb") as f:
     model = cloudpickle.load(f)
 
 # ===============================
-# 3️⃣ HEADER
+# 3️. HEADER
 # ===============================
 logo_path = BASE_DIR / "ALGORANGER 2 Logo with Graph and Hat (1).png"
 col1, col2 = st.columns([1, 5])
@@ -56,23 +56,14 @@ with col2:
 st.markdown("---")
 
 # ===============================
-# 4️⃣ SIMPLE ADMIN LOGIN
+# 4. SIDEBAR NAVIGATION
 # ===============================
-st.sidebar.subheader("🔒 Admin Login")
-password = st.sidebar.text_input("Enter admin password", type="password")
-is_admin = password == "0000"
-
-# ===============================
-# 5️⃣ SIDEBAR NAVIGATION
-# ===============================
-menu = st.sidebar.radio(
-    "Navigation",
+menu = st.sidebar.radio("Navigation",
     ["General Dashboard", "Talent Development", "Promotion", "Absency", "Recruitment"],
-    index=2
-)
+    index=2)
 
 # ===============================
-# 6️⃣ PROMOTION DASHBOARD
+# 5. PROMOTION DASHBOARD
 # ===============================
 if menu == "Promotion":
     st.subheader("HR - Promotion Dashboard")
@@ -124,7 +115,7 @@ if menu == "Promotion":
 
     # --- Individual Employee Prediction ---
     st.markdown("---")
-    st.subheader("🔍 Individual Employee Promotion Prediction")
+    st.subheader("Individual Employee Promotion Prediction")
     emp_id = st.text_input("Enter Employee ID (Format: EMPXXXX):")
 
     if emp_id:
@@ -134,18 +125,24 @@ if menu == "Promotion":
         else:
             emp_X = emp_row.drop(columns=["Promotion_Eligible", "Employee_ID"], errors="ignore")
             prediction = model.predict(emp_X)[0]
-            result = "✅ Eligible for Promotion" if prediction == 1 else "❌ Not Eligible for Promotion"
+            result = "✅ Eligible for Promotion" if prediction == 1 else "Not Eligible for Promotion Yet"
             st.success(f"**Prediction for {emp_id}: {result}**")
 
     # ===============================
-    # 7️⃣ ADMIN DATA INPUT / UPLOAD
+    # 6. SIMPLE ADMIN LOGIN
+    # ===============================
+    st.sidebar.subheader("🔒 Admin Login")
+    password = st.sidebar.text_input("Enter admin password", type="password")
+    is_admin = password == "0000"
+    # ===============================
+    # 7️. ADMIN DATA INPUT / UPLOAD
     # ===============================
     st.markdown("---")
-    st.subheader("🔑 Admin: Input Data Employee Baru / Batch Upload")
+    st.subheader("Admin: Input Data Employee Baru / Batch Upload")
 
     if is_admin:
         # --- Manual Input Form ---
-        st.markdown("### 📝 Input Employee Data Manually")
+        st.markdown("### Input Employee Data Manually")
         with st.form("manual_input_form"):
             emp_id = st.text_input("Employee ID (Format: EMPXXXX)")
             position = st.selectbox("Current Position Level", df["Current_Position_Level"].unique())
@@ -162,7 +159,7 @@ if menu == "Promotion":
                 })
                 new_X = new_row.drop(columns=["Employee_ID"])
                 pred = model.predict(new_X)[0]
-                st.success(f"Predicted Promotion for {emp_id}: {'✅ Eligible' if pred==1 else '❌ Not Eligible'}")
+                st.success(f"Predicted Promotion for {emp_id}: {'✅ Eligible' if pred==1 else 'Not Eligible Yet'}")
                 st.dataframe(new_row.assign(Predicted_Promotion=pred))
 
         # --- Batch CSV Upload ---
