@@ -1,5 +1,5 @@
 # ======================================================
-# app.py — HR Promotion Dashboard (Final Full Version)
+# app.py — HR Promotion Dashboard (Final Clean Version)
 # ======================================================
 import os
 from pathlib import Path
@@ -17,7 +17,7 @@ st.markdown("""
 <style>
 [data-testid="stAppViewContainer"] { background-color: #f7faff; }
 [data-testid="stSidebar"] { background-color: #e8f1fa; color: black; }
-[data-testid="stSidebar"] * { color: #0f4c81 !important; }
+[data-testid="stSidebar"] * { color: #0f4c81 !important; font-size: 15px !important; }
 .main-header { background-color: #0078d4; padding: 12px; border-radius: 10px;
                color: white; font-size: 26px; font-weight: bold; text-align: center; }
 h3 { color: #0f4c81; }
@@ -40,13 +40,13 @@ data_path = BASE_DIR.parent / "Data" / "Rakamin Bootcamp - Dataset - Promotion D
 model_path = BASE_DIR / "model2.pkl"
 
 df = pd.read_csv(data_path, sep=";")
-
 with open(model_path, "rb") as f:
     model = cloudpickle.load(f)
-  
-# Drop rows with NaN in Projects_Handled (for clean boxplot)
+
+# Drop rows with NaN in Projects_Handled
 if "Projects_Handled" in df.columns:
     df = df.dropna(subset=["Projects_Handled"])
+
 # ===============================
 # 3️⃣ HEADER
 # ===============================
@@ -68,7 +68,13 @@ menu = st.sidebar.radio("Navigation",
     index=2)
 
 # ===============================
-# 5️⃣ PROMOTION DASHBOARD
+# 5️⃣ GENERAL DASHBOARD
+# ===============================
+if menu == "General Dashboard":
+    st.info("Welcome to the HR Dashboard. Please select a section from the sidebar.")
+
+# ===============================
+# 6️⃣ PROMOTION DASHBOARD
 # ===============================
 if menu == "Promotion":
     st.subheader("HR - Promotion Dashboard")
@@ -81,20 +87,20 @@ if menu == "Promotion":
         avg_perf = df["Performance_Score"].mean().round(2)
         st.metric("Avg Performance Score", f"{avg_perf}/5")
     with col3:
-        promo_ready = (df["Promotion_Eligible"].sum() / len(df)) * 100
+        promo_ready = (df["Promotion_Eligible"].mean() * 100).round(1)
+        st.metric("Promotion Eligibility", f"{promo_ready:.1f}%")
+        promo_counts = df["Promotion_Eligible"].value_counts()
         fig_pie, ax_pie = plt.subplots(figsize=(2.2, 2.2))
-        ax_pie.pie(promo_ready, labels=["Not Eligible", "Eligible"], autopct="%1.1f%%", startangle=90, colors=["#ff7f0e", "#1f77b4"])
+        ax_pie.pie(promo_counts, labels=["Not Eligible", "Eligible"],
+                   autopct="%1.1f%%", startangle=90,
+                   colors=["#ff7f0e", "#1f77b4"])
         st.pyplot(fig_pie)
-        st.metric("Promotion Readiness", f"{promo_counts:.1f}%")
 
     st.markdown("---")
     st.markdown("### Career Progression Insights")
 
-    # ===============================
-    # Bar Chart 1: Tenure per Position
-    # ===============================
+    # Tenure per Position
     col4, col5, col6 = st.columns(3)
-
     with col4:
         exp_by_level = df.groupby("Current_Position_Level")["Years_at_Company"].mean()
         fig1, ax1 = plt.subplots()
@@ -103,9 +109,8 @@ if menu == "Promotion":
         ax1.set_ylabel("Average Years at Company")
         ax1.set_title("Average Tenure by Position Level")
         st.pyplot(fig1)
-    # ===============================
-    # Bar Chart 2: Performance Score
-    # ===============================   
+
+    # Performance Score
     with col5:
         perf_data = df.groupby(["Current_Position_Level", "Promotion_Eligible"])["Performance_Score"].mean().unstack(fill_value=0)
         fig_perf, ax_perf = plt.subplots()
@@ -113,15 +118,11 @@ if menu == "Promotion":
         ax_perf.set_xlabel("Current Position Level")
         ax_perf.set_ylabel("Avg Performance Score")
         ax_perf.set_title("Performance Score by Position Level and Eligibility")
-
         for container in ax_perf.containers:
             ax_perf.bar_label(container, fmt="%.2f", label_type="center")
-
         st.pyplot(fig_perf)
 
-    # ===============================
-    # Bar Chart 3: Leadership Score
-    # ===============================
+    # Leadership Score
     with col6:
         lead_data = df.groupby(["Current_Position_Level", "Promotion_Eligible"])["Leadership_Score"].mean().unstack(fill_value=0)
         fig_lead, ax_lead = plt.subplots()
@@ -129,48 +130,35 @@ if menu == "Promotion":
         ax_lead.set_xlabel("Current Position Level")
         ax_lead.set_ylabel("Avg Leadership Score")
         ax_lead.set_title("Leadership Score by Position Level and Eligibility")
-
         for container in ax_lead.containers:
             ax_lead.bar_label(container, fmt="%.2f", label_type="center")
-
         st.pyplot(fig_lead)
 
-    # ===============================
     # Boxplot: Projects Handled
-    # ===============================
     st.markdown("### Projects Handled Distribution by Position and Eligibility")
-    fig_box, ax_box = plt.subplots(figsize=(8, 5))
     df["Group"] = df["Current_Position_Level"] + " - " + df["Promotion_Eligible"].map({0: "Not Eligible", 1: "Eligible"})
     df_sorted = df.sort_values("Current_Position_Level")
     box_data = [df_sorted[df_sorted["Group"] == g]["Projects_Handled"] for g in df_sorted["Group"].unique()]
-    ax_box.boxplot(box_data, patch_artist=True,
-                   boxprops=dict(facecolor="#1f77b4", alpha=0.5),
-                   medianprops=dict(color="black"))
+    fig_box, ax_box = plt.subplots(figsize=(8, 5))
+    ax_box.boxplot(box_data, patch_artist=True, boxprops=dict(facecolor="#1f77b4", alpha=0.5), medianprops=dict(color="black"))
     ax_box.set_xticklabels(df_sorted["Group"].unique(), rotation=45, ha="right")
     ax_box.set_ylabel("Projects Handled")
     ax_box.set_title("Projects Handled by Position and Eligibility")
     st.pyplot(fig_box)
 
+    # Predictive HR
     st.markdown("---")
-
-    # ===============================
-    # Predictive HR Section
-    # ===============================
     st.subheader("Predictive HR - Promotion")
     X = df.drop(columns=["Promotion_Eligible", "Employee_ID"], errors="ignore")
     df["Predicted_Promotion"] = model.predict(X)
-
     top5 = df[df["Predicted_Promotion"] == 1].head(5)
     st.markdown("### Top 5 Employees Recommended for Promotion")
     st.table(top5[["Employee_ID", "Current_Position_Level", "Performance_Score", "Predicted_Promotion"]])
 
-    # ===============================
-    # Individual Employee Prediction
-    # ===============================
+    # Individual prediction
     st.markdown("---")
     st.subheader("Individual Employee Promotion Prediction")
     emp_id = st.text_input("Enter Employee ID (Format: EMPXXXX):")
-
     if emp_id:
         emp_row = df[df["Employee_ID"] == emp_id]
         if emp_row.empty:
@@ -191,7 +179,6 @@ with st.sidebar:
 
     if password == "0000":
         st.success("Access Granted ✅")
-
         emp_id_manual = st.text_input("Employee ID (Format: EMPXXXX)")
         position = st.selectbox("Position Level", df["Current_Position_Level"].unique())
         perf_score = st.number_input("Performance Score (1-5)", min_value=1, max_value=5, step=1)
