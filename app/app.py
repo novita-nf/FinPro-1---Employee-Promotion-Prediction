@@ -128,12 +128,12 @@ if menu == "Promotion":
             result = "✅ Eligible for Promotion" if prediction == 1 else "Not Eligible for Promotion Yet"
             st.success(f"**Prediction for {emp_id}: {result}**")
 
-      # ===============================
-      # 6. SIMPLE ADMIN LOGIN
-      # ===============================
-      st.sidebar.subheader("🔒 Admin Login")
-      password = st.sidebar.text_input("Enter admin password", type="password")
-      is_admin = password == "0000"
+        # ===============================
+        # 6. SIMPLE ADMIN LOGIN
+        # ===============================
+        st.sidebar.subheader("🔒 Admin Login")
+        password = st.sidebar.text_input("Enter admin password", type="password")
+        is_admin = password == "0000"
     # ===============================
     # 7️. ADMIN DATA INPUT / UPLOAD
     # ===============================
