@@ -141,15 +141,35 @@ if menu == "Promotion":
 
     # Boxplot: Projects Handled
     st.markdown("### Projects Handled Distribution by Position and Eligibility")
-    df["Group"] = df["Current_Position_Level"] + " - " + df["Promotion_Eligible"].map({0: "Not Eligible", 1: "Eligible"})
-    df_sorted = df.sort_values("Current_Position_Level")
-    box_data = [df_sorted[df_sorted["Group"] == g]["Projects_Handled"] for g in df_sorted["Group"].unique()]
-    fig_box, ax_box = plt.subplots(figsize=(8, 5))
-    ax_box.boxplot(box_data, patch_artist=True, boxprops=dict(facecolor="#1f77b4", alpha=0.5), medianprops=dict(color="black"))
-    ax_box.set_xticklabels(df_sorted["Group"].unique(), rotation=45, ha="right")
-    ax_box.set_ylabel("Projects Handled")
-    ax_box.set_title("Projects Handled by Position and Eligibility")
-    st.pyplot(fig_box)
+    if "Projects_Handled" in df.columns:
+        fig_box, ax_box = plt.subplots(figsize=(8, 5))
+        levels = df["Current_Position_Level"].unique()
+        colors = {0: "#ff7f0e", 1: "#1f77b4"}
+
+        for i, level in enumerate(levels):
+            for elig in [0, 1]:
+                data = df[(df["Current_Position_Level"] == level) & (df["Promotion_Eligible"] == elig)]["Projects_Handled"]
+                positions = [i * 2 + elig + 1]
+                ax_box.boxplot(data, positions=positions, patch_artist=True,
+                               boxprops=dict(facecolor=colors[elig], alpha=0.6),
+                               medianprops=dict(color="black"))
+
+        ax_box.set_xticks(range(1.5, len(levels)*2, 2))
+        ax_box.set_xticklabels(levels, rotation=45, ha="right")
+        ax_box.set_ylabel("Projects Handled")
+        ax_box.set_title("Project Handled Distribution by Seniority Level")
+
+        # Legend
+        handles = [
+            plt.Line2D([0], [0], color=colors[0], lw=4, label='Not Eligible'),
+            plt.Line2D([0], [0], color=colors[1], lw=4, label='Eligible')
+        ]
+        ax_box.legend(handles=handles, title="Promotion Eligibility")
+        st.pyplot(fig_box)
+    else:
+        st.warning("⚠️ Column 'Project_Handled' not found in dataset.")
+
+    st.markdown("---")
 
     # Predictive HR
     st.markdown("---")
