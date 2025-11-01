@@ -81,7 +81,7 @@ if menu == "Promotion":
         avg_perf = df["Performance_Score"].mean().round(2)
         st.metric("Avg Performance Score", f"{avg_perf}/5")
     with col3:
-        st.metric("Promotion Readiness", f"{promo_ready:.1f}%")
+        st.metric("Promotion Readiness", f"{promo_counts:.1f}%")
         promo_counts = df["Promotion_Eligible"].value_counts()
         fig_pie, ax_pie = plt.subplots(figsize=(2.2, 2.2))
         ax_pie.pie(promo_counts, labels=["Not Eligible", "Eligible"], autopct="%1.1f%%", startangle=90, colors=["#ff7f0e", "#1f77b4"])
