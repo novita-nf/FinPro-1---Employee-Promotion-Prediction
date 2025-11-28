@@ -1,13 +1,13 @@
 # ======================================================
-# app.py — HR Promotion Dashboard (Final Clean Version)
+# app.py — HR Promotion Dashboard (Updated & Stabilized)
 # ======================================================
 import os
 from pathlib import Path
 import streamlit as st
 import pandas as pd
 import numpy as np
-import cloudpickle
 import matplotlib.pyplot as plt
+import joblib
 
 # ===============================
 # 1️⃣ CONFIG & THEME
@@ -40,12 +40,14 @@ else:
 data_path = BASE_DIR.parent / "Data" / "Rakamin Bootcamp - Dataset - Promotion Dataset.csv"
 model_path = BASE_DIR / "model3.pkl"
 
+# Load dataset
 df = pd.read_csv(data_path, sep=";")
-with open(model_path)
 
-# Drop rows with NaN in Projects_Handled
 if "Projects_Handled" in df.columns:
     df = df.dropna(subset=["Projects_Handled"])
+
+# Load trained pipeline
+model = joblib.load(model_path)
 
 # ===============================
 # 3️⃣ HEADER
@@ -63,9 +65,11 @@ st.markdown("---")
 # ===============================
 # 4️⃣ SIDEBAR NAVIGATION
 # ===============================
-menu = st.sidebar.radio("Navigation",
+menu = st.sidebar.radio(
+    "Navigation",
     ["General Dashboard", "Talent Development", "Promotion", "Absency", "Recruitment"],
-    index=2)
+    index=2
+)
 
 # ===============================
 # 5️⃣ GENERAL DASHBOARD
@@ -79,33 +83,35 @@ if menu == "General Dashboard":
 if menu == "Promotion":
     st.subheader("HR - Promotion Dashboard")
 
-    # --- Metrics ---
+    # ========== METRIC CARDS ==========
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("Total Employees", len(df))
+
     with col2:
         avg_perf = df["Performance_Score"].mean().round(2)
         st.metric("Avg Performance Score", f"{avg_perf}/5")
+
     with col3:
-        st.markdown(
-        """
-        <p style="font-size:16px; font-weight:600; margin-bottom:-10px;">
-            Promotion Eligibility Distribution
-        </p>
-        """,
-        unsafe_allow_html=True)
+        st.markdown("<p style='font-size:16px;font-weight:600;margin-bottom:-10px;'>Promotion Eligibility Distribution</p>",
+                    unsafe_allow_html=True)
         promo_counts = df["Promotion_Eligible"].value_counts()
         fig_pie, ax_pie = plt.subplots(figsize=(2.2, 2.2))
-        ax_pie.pie(promo_counts, labels=["Not Eligible", "Eligible"],
-                   autopct="%1.1f%%", startangle=90,
-                   colors=["#ff7f0e", "#1f77b4"])
+        ax_pie.pie(
+            promo_counts,
+            labels=["Not Eligible", "Eligible"],
+            autopct="%1.1f%%",
+            startangle=90,
+            colors=["#ff7f0e", "#1f77b4"]
+        )
         st.pyplot(fig_pie)
 
     st.markdown("---")
     st.markdown("### Career Progression Insights")
 
-    # Tenure per Position
+    # ========== Tenure by Position ==========
     col4, col5, col6 = st.columns(3)
+
     with col4:
         exp_by_level = df.groupby("Current_Position_Level")["Years_at_Company"].mean()
         fig1, ax1 = plt.subplots()
@@ -115,7 +121,7 @@ if menu == "Promotion":
         ax1.set_title("Average Tenure by Position Level")
         st.pyplot(fig1)
 
-    # Performance Score
+    # ========== Performance by Position & Eligibility ==========
     with col5:
         perf_data = df.groupby(["Current_Position_Level", "Promotion_Eligible"])["Performance_Score"].mean().unstack(fill_value=0)
         fig_perf, ax_perf = plt.subplots()
@@ -123,11 +129,11 @@ if menu == "Promotion":
         ax_perf.set_xlabel("Current Position Level")
         ax_perf.set_ylabel("Avg Performance Score")
         ax_perf.set_title("Performance Score by Position Level and Eligibility")
-        for container in ax_perf.containers:
-            ax_perf.bar_label(container, fmt="%.2f", label_type="center")
+        for c in ax_perf.containers:
+            ax_perf.bar_label(c, fmt="%.2f", label_type="center")
         st.pyplot(fig_perf)
 
-    # Leadership Score
+    # ========== Leadership Score ==========
     with col6:
         lead_data = df.groupby(["Current_Position_Level", "Promotion_Eligible"])["Leadership_Score"].mean().unstack(fill_value=0)
         fig_lead, ax_lead = plt.subplots()
@@ -135,12 +141,13 @@ if menu == "Promotion":
         ax_lead.set_xlabel("Current Position Level")
         ax_lead.set_ylabel("Avg Leadership Score")
         ax_lead.set_title("Leadership Score by Position Level and Eligibility")
-        for container in ax_lead.containers:
-            ax_lead.bar_label(container, fmt="%.2f", label_type="center")
+        for c in ax_lead.containers:
+            ax_lead.bar_label(c, fmt="%.2f", label_type="center")
         st.pyplot(fig_lead)
 
-    # Boxplot: Projects Handled
+    # ========== Projects Handled ==========
     st.markdown("### Projects Handled Distribution by Position and Eligibility")
+
     if "Projects_Handled" in df.columns:
         fig_box, ax_box = plt.subplots(figsize=(8, 5))
         levels = df["Current_Position_Level"].unique()
@@ -150,52 +157,61 @@ if menu == "Promotion":
             for elig in [0, 1]:
                 data = df[(df["Current_Position_Level"] == level) & (df["Promotion_Eligible"] == elig)]["Projects_Handled"]
                 positions = [i * 2 + elig + 1]
-                ax_box.boxplot(data, positions=positions, patch_artist=True,
-                               boxprops=dict(facecolor=colors[elig], alpha=0.6),
-                               medianprops=dict(color="black"))
+                ax_box.boxplot(
+                    data,
+                    positions=positions,
+                    patch_artist=True,
+                    boxprops=dict(facecolor=colors[elig], alpha=0.6),
+                    medianprops=dict(color="black")
+                )
 
-        ax_box.set_xticks(np.arange(1.5, len(levels)*2, 2))
+        ax_box.set_xticks(np.arange(1.5, len(levels) * 2, 2))
         ax_box.set_xticklabels(levels, ha="right")
         ax_box.set_ylabel("Projects Handled")
         ax_box.set_title("Project Handled Distribution by Seniority Level")
 
-        # Legend
         handles = [
             plt.Line2D([0], [0], color=colors[0], lw=4, label='Not Eligible'),
             plt.Line2D([0], [0], color=colors[1], lw=4, label='Eligible')
         ]
         ax_box.legend(handles=handles, title="Promotion Eligibility")
         st.pyplot(fig_box)
-    else:
-        st.warning("⚠️ Column 'Project_Handled' not found in dataset.")
 
     st.markdown("---")
 
-    # Predictive HR
-    st.markdown("---")
+    # ========== Predictive HR ==========
     st.subheader("Predictive HR - Promotion")
-    X = df.drop(columns=["Promotion_Eligible", "Employee_ID"], errors="ignore")
-    df["Predicted_Promotion"] = model.predict(X)
-    top5 = df[df["Predicted_Promotion"] == 1].head(5)
-    st.markdown("### Top 5 Employees Recommended for Promotion")
-    st.table(top5[["Employee_ID", "Current_Position_Level", "Performance_Score", "Predicted_Promotion"]])
 
-    # Individual prediction
+    # Remove non-feature columns
+    X = df.drop(columns=["Promotion_Eligible", "Employee_ID"], errors="ignore")
+
+    # —— FIX: Use probability sorting (recommended employees)
+    df["Predicted_Prob"] = model.predict_proba(X)[:, 1]
+    df["Predicted_Label"] = model.predict(X)
+
+    top5 = df.sort_values("Predicted_Prob", ascending=False).head(5)
+    st.markdown("### Top 5 Employees Recommended for Promotion (by probability)")
+    st.table(top5[["Employee_ID", "Current_Position_Level", "Performance_Score", "Predicted_Prob"]])
+
+    # —— Individual prediction
     st.markdown("---")
     st.subheader("Individual Employee Promotion Prediction")
     emp_id = st.text_input("Enter Employee ID (Format: EMPXXXX):")
+
     if emp_id:
         emp_row = df[df["Employee_ID"] == emp_id]
         if emp_row.empty:
-            st.warning("Employee ID not found. Please check the format (e.g., EMP0001).")
+            st.warning("Employee ID not found.")
         else:
-            emp_X = emp_row.drop(columns=["Promotion_Eligible", "Employee_ID"], errors="ignore")
+            emp_X = emp_row.drop(columns=["Promotion_Eligible", "Employee_ID", "Predicted_Prob", "Predicted_Label"], errors="ignore")
+            prob = model.predict_proba(emp_X)[0][1]
             prediction = model.predict(emp_X)[0]
-            result = "✅ Eligible for Promotion" if prediction == 1 else "Not Eligible for Promotion Yet"
-            st.success(f"**Prediction for {emp_id}: {result}**")
+
+            result = "✅ Eligible for Promotion" if prediction == 1 else "Not Yet Promotion-Ready"
+            st.success(f"**{result} (Probability: {prob:.2f})**")
 
 # ===============================
-# 🔐 ADMIN SIDEBAR (KANAN)
+# 🔐 ADMIN SIDEBAR MENU
 # ===============================
 with st.sidebar:
     st.markdown("---")
@@ -204,32 +220,47 @@ with st.sidebar:
 
     if password == "0000":
         st.success("Access Granted ✅")
+
+        # Manual form
         emp_id_manual = st.text_input("Employee ID (Format: EMPXXXX)")
         position = st.selectbox("Position Level", df["Current_Position_Level"].unique())
-        perf_score = st.number_input("Performance Score (1-5)", min_value=1, max_value=5, step=1)
-        years = st.number_input("Years at Company", min_value=0, max_value=50, step=1)
+        perf_score = st.number_input("Performance Score (1-5)", min_value=1, max_value=5)
+        years = st.number_input("Years at Company", min_value=0, max_value=40)
+        train_hours = st.number_input("Training Hours", min_value=0, max_value=500)
+        leader_score = st.slider("Leadership Score", 1, 5)
+        projects = st.number_input("Projects Handled", min_value=0, max_value=50)
+        peer_score = st.slider("Peer Review Score", 1, 5)
 
         if st.button("Predict Manually"):
-            new_row = pd.DataFrame({
-                "Employee_ID": [emp_id_manual],
-                "Current_Position_Level": [position],
-                "Performance_Score": [perf_score],
-                "Years_at_Company": [years]
-            })
-            new_X = new_row.drop(columns=["Employee_ID"])
-            pred = model.predict(new_X)[0]
-            st.success(f"{emp_id_manual}: {'✅ Eligible' if pred==1 else 'Not Eligible'}")
+            new_row = pd.DataFrame([{
+                "Current_Position_Level": position,
+                "Performance_Score": perf_score,
+                "Years_at_Company": years,
+                "Training_Hours": train_hours,
+                "Leadership_Score": leader_score,
+                "Projects_Handled": projects,
+                "Peer_Review_Score": peer_score,
+                "Age": df["Age"].median()  # fallback if Age not provided
+            }])
 
+            prob = model.predict_proba(new_row)[0][1]
+            pred = model.predict(new_row)[0]
+
+            st.success(
+                f"{emp_id_manual}: {'Eligible' if pred==1 else 'Not Eligible'} "
+                f"(Prob: {prob:.2f})"
+            )
+
+        # —— Batch upload
         st.markdown("### 📤 Batch Upload CSV")
         uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
         if uploaded_file:
-            try:
-                batch_df = pd.read_csv(uploaded_file, sep=";")
-                batch_X = batch_df.drop(columns=["Employee_ID"], errors="ignore")
-                batch_df["Predicted_Promotion"] = model.predict(batch_X)
-                st.success("✅ Batch prediction done!")
-                st.dataframe(batch_df)
-            except Exception as e:
-                st.error(f"Error processing file: {e}")
+            batch_df = pd.read_csv(uploaded_file, sep=";")
+            batch_X = batch_df.drop(columns=["Employee_ID"], errors="ignore")
+            batch_df["Predicted_Prob"] = model.predict_proba(batch_X)[:, 1]
+            batch_df["Predicted_Promotion"] = model.predict(batch_X)
+            st.success("Batch prediction completed.")
+            st.dataframe(batch_df)
+
     else:
-        st.info("Enter admin password to unlock input features.")
+        st.info("Enter admin password to unlock admin tools.")
