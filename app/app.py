@@ -86,11 +86,25 @@ if menu == "Promotion":
     # ========== METRIC CARDS ==========
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Total Employees", len(df))
+        st.metric("👥 Total Employees", len(df))
+
+        # Simple bar (just visual delight)
+        bar_fig = go.Figure(go.Bar(
+          x=["Employees"],
+          y=[len(df)]))
+        bar_fig.update_layout(height=200, margin=dict(l=20, r=20, t=30, b=0))
+        st.plotly_chart(bar_fig, use_container_width=True)
 
     with col2:
         avg_perf = df["Performance_Score"].mean().round(2)
-        st.metric("Avg Performance Score", f"{avg_perf}/5")
+        st.metric("⭐ Avg Performance Score", f"{avg_perf:.2f}/5")
+
+        gauge = go.Figure(go.Indicator(mode="gauge+number",value=avg_perf,gauge={
+          "axis": {"range": [0, 5]},
+          "bar": {"color": "blue"}}, number={"suffix": " / 5"},title={"text": "Average Performance"}))
+
+        gauge.update_layout(height=200, margin=dict(l=20, r=20, t=30, b=0))
+        st.plotly_chart(gauge, use_container_width=True)
 
     with col3:
         st.markdown("<p style='font-size:16px;font-weight:600;margin-bottom:-10px;'>Promotion Eligibility Distribution</p>",
