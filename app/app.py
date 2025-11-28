@@ -314,40 +314,7 @@ if menu == "Promotion":
         **Recommended HR Action:** {emp_row['HR_Action'].values[0]}
         """)
 
-    # ===== Individual Prediction =====
-    st.markdown("---")
-    st.subheader("Individual Employee Promotion Prediction")
-
-    emp_id = st.text_input("Enter Employee ID (Format: EMPXXXX):")
-    if emp_id:
-      emp_row = df[df["Employee_ID"] == emp_id]
-    if emp_row.empty:
-      st.warning("Employee ID not found.")
-    else:
-      emp_X = emp_row.drop(columns=[
-        "Promotion_Eligible", "Employee_ID",
-        "Predicted_Prob", "Predicted_Label",
-        "Prediction_Type", "Category",
-        "Interpretation", "HR_Action"], errors="ignore")
         
-    prob = model.predict_proba(emp_X)[0][1]
-    prediction = model.predict(emp_X)[0]
-        
-    # Read HR interpretation
-    pred_type = emp_row["Prediction_Type"].values[0]
-    category = emp_row["Category"].values[0]
-    interp = emp_row["Interpretation"].values[0]
-    action = emp_row["HR_Action"].values[0]
-
-    result = "✅ Eligible for Promotion" if prediction == 1 else "Not Yet Promotion-Ready"
-    st.success(f"""
-    **{result} (Probability: {prob:.2f})**
-    **Prediction Type:** {pred_type}  
-    **Category:** {category}  
-    **Interpretation:** {interp}  
-    **Recommended HR Action:** {action}""")
-
-          
 # ===============================
 # 🔐 ADMIN SIDEBAR MENU
 # ===============================
