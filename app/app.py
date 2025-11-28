@@ -41,8 +41,7 @@ data_path = BASE_DIR.parent / "Data" / "Rakamin Bootcamp - Dataset - Promotion D
 model_path = BASE_DIR / "model3.pkl"
 
 df = pd.read_csv(data_path, sep=";")
-with open(model_path, "rb") as f:
-    model = cloudpickle.load(f)
+with open(model_path, "rb")
 
 # Drop rows with NaN in Projects_Handled
 if "Projects_Handled" in df.columns:
