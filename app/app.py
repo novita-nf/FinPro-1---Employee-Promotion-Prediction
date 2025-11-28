@@ -179,37 +179,6 @@ if menu == "Promotion":
 
     st.markdown("---")
 
-    # ========== Predictive HR ==========
-    st.subheader("Predictive HR - Promotion")
-
-    # Remove non-feature columns
-    X = df.drop(columns=["Promotion_Eligible", "Employee_ID"], errors="ignore")
-
-    # —— FIX: Use probability sorting (recommended employees)
-    df["Predicted_Prob"] = model.predict_proba(X)[:, 1]
-    df["Predicted_Label"] = model.predict(X)
-
-    top5 = df.sort_values("Predicted_Prob", ascending=False).head(5)
-    st.markdown("### Top 5 Employees Recommended for Promotion (by probability)")
-    st.table(top5[["Employee_ID", "Current_Position_Level", "Performance_Score", "Predicted_Prob"]])
-
-    # —— Individual prediction
-    st.markdown("---")
-    st.subheader("Individual Employee Promotion Prediction")
-    emp_id = st.text_input("Enter Employee ID (Format: EMPXXXX):")
-
-    if emp_id:
-        emp_row = df[df["Employee_ID"] == emp_id]
-        if emp_row.empty:
-            st.warning("Employee ID not found.")
-        else:
-            emp_X = emp_row.drop(columns=["Promotion_Eligible", "Employee_ID", "Predicted_Prob", "Predicted_Label"], errors="ignore")
-            prob = model.predict_proba(emp_X)[0][1]
-            prediction = model.predict(emp_X)[0]
-
-            result = "✅ Eligible for Promotion" if prediction == 1 else "Not Yet Promotion-Ready"
-            st.success(f"**{result} (Probability: {prob:.2f})**")
-
     # ===============================
     # 📌 MODEL INTERPRETATION SECTION
     # ===============================
@@ -258,7 +227,101 @@ if menu == "Promotion":
                              })
     st.dataframe(interp_df, use_container_width=True)
 
+    # ========== Predictive HR ==========
+    st.subheader("Predictive HR - Promotion")
 
+    # Remove non-feature columns
+    X = df.drop(columns=["Promotion_Eligible", "Employee_ID"], errors="ignore")
+
+    # —— Add probability + label
+    df["Predicted_Prob"] = model.predict_proba(X)[:, 1]
+    df["Predicted_Label"] = model.predict(X)
+
+    # ====== Add HR Interpretation Columns ======
+    def classify_prediction(row):
+      prob = row["Predicted_Prob"]
+      actual = row["Promotion_Eligible"]
+      pred = row["Predicted_Label"]
+      
+      # Determine classification type (TP, FP, FN, TN)
+      if actual == 1 and pred == 1:
+        pred_type = "TP"
+      elif actual == 1 and pred == 0:
+        pred_type = "FN"
+      elif actual == 0 and pred == 1:
+        pred_type = "FP"
+      else:
+        pred_type = "TN"
+      
+      # Probability-based category
+        if prob > 0.70:
+          category = "Confirmed Eligible"
+          interpretation = "Strong confidence — high likelihood of promotion readiness"action = "Proceed to promotion review / fast-track"
+        elif 0.50 <= prob <= 0.65:
+          category = "Overestimated"
+          interpretation = "Predicted eligible, but actual data does not fully support it"
+          action = "Validate data completeness / performance records"
+        elif 0.40 <= prob < 0.50:
+          category = "Missed Potential"
+          interpretation = "Model may miss actual high performers near threshold"
+          action = "Manual review — may be strong performers"
+        else:
+          category = "Not Ready"
+          interpretation = "Low probability — unlikely promotion-ready"
+          action = "No immediate action needed"
+
+        return pd.Series([pred_type, category, interpretation, action])
+
+    df[["Prediction_Type", "Category", "Interpretation", "HR_Action"]] = df.apply(classify_prediction, axis=1)
+
+    # ===== SHOW TOP 5 =====
+    st.markdown("### Top 5 Employees Recommended for Promotion (by probability)")
+
+    top5 = df.sort_values("Predicted_Prob", ascending=False).head(5)
+    st.table(top5[[
+      "Employee_ID",
+      "Current_Position_Level",
+      "Performance_Score",
+      "Predicted_Prob",
+      "Category",
+      "HR_Action"]])
+
+      # ===== Individual Prediction =====
+      st.markdown("---")
+      st.subheader("Individual Employee Promotion Prediction")
+
+      emp_id = st.text_input("Enter Employee ID (Format: EMPXXXX):")
+
+      if emp_id:
+        emp_row = df[df["Employee_ID"] == emp_id]
+      if emp_row.empty:
+        st.warning("Employee ID not found.")
+      else:
+        emp_X = emp_row.drop(columns=[
+          "Promotion_Eligible", "Employee_ID",
+          "Predicted_Prob", "Predicted_Label",
+          "Prediction_Type", "Category",
+          "Interpretation", "HR_Action"], errors="ignore")
+        
+      prob = model.predict_proba(emp_X)[0][1]
+      prediction = model.predict(emp_X)[0]
+        
+      # Read HR interpretation
+      pred_type = emp_row["Prediction_Type"].values[0]
+      category = emp_row["Category"].values[0]
+      interp = emp_row["Interpretation"].values[0]
+      action = emp_row["HR_Action"].values[0]
+
+      result = "✅ Eligible for Promotion" if prediction == 1 else "Not Yet Promotion-Ready"
+      st.success(f"""
+      **{result} (Probability: {prob:.2f})**
+      **Prediction Type:** {pred_type}  
+      **Category:** {category}  
+      **Interpretation:** {interp}  
+      **Recommended HR Action:** {action}
+      """)
+
+          
 # ===============================
 # 🔐 ADMIN SIDEBAR MENU
 # ===============================
