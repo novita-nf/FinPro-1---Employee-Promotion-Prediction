@@ -4,25 +4,37 @@
 
 ---
 
+## Overview
+This project focuses on utilizing a Machine Learning model designed to predict employee promotion eligibility by leveraging Employee Career Advancement Prediction Data.
+
 ## Dataset
 **Source:** Employee Career Advancement Prediction Data  
 
-Dataset berisi informasi historis karyawan yang mencakup performa, pengalaman, partisipasi pelatihan, proyek, serta hasil penilaian manajer.
+Dataset : Rakamin Bootcamp - Dataset - Promotion Dataset.csv
+Info Data :
+Total records: 1,000 employees
+Data missing: 950 (5% missing values)
+Features: 10 columns, 2 numeric and 2 categorical
+Target variable: Promotion_Eligible (1 = eligible, 0 = not eligible)
 
 ---
 
 ## Project Summary
-Perusahaan menghadapi tantangan dalam menentukan karyawan yang layak promosi.  
-Proses manual dan subjektif sering menimbulkan bias, menghambat transparansi, dan berpotensi kehilangan talenta berprestasi.  
+Employee promotion ⟶ aims to support business operations and employee development
+Process ⟶ multi-step review involving several stakeholders (managers, HR, promotion committee) with various considerations such as performance, age, leadership, projects, and others - multi-factor
+Mechanism ⟶ manually
 
-Dengan memanfaatkan data historis karyawan, proyek ini bertujuan membangun **model prediksi kelayakan promosi** berbasis pembelajaran mesin (supervised learning).
+The current employee promotion process is conducted through manual, multi-step reviews involving multiple stakeholders and various evaluation factors.
+Due to its complexity, this process makes it difficult for HR to quickly prioritize high-potential candidates, delaying internal
 
 ---
 
 ##  Goal
-- Mengidentifikasi faktor paling berpengaruh dalam keputusan promosi.  
-- Membangun model klasifikasi untuk memprediksi karyawan yang **layak promosi (eligible)**.  
-- Memberikan insight bagi HR untuk mendukung keputusan promosi yang lebih objektif dan data-driven.
+-The goal of this project is to optimize the employee promotion decision-making process through a data-driven and automated approach.
+By leveraging machine learning, HR can save time and reduce operational inefficiencies. The machine
+learning model serves to predict promotion eligibility, helping prioritize the most qualified candidates
+“By automating manual and repetitive tasks, organizations can reduce administrative and operational costs by 30–50%.”
+(McKinsey, “Operations management reshaped by robotic automation”, 2020)
 
 ## Employee Promotion Prediction App
 
@@ -34,8 +46,8 @@ A Streamlit web app for HR analytics and promotion prediction.
 
 🧠 **Model:** RandomForest pipeline (`model3.pkl`)
 
-## Coding
-google colab:
-https://colab.research.google.com/drive/1S2nMZLOEN0VI8UdqGOSCViBjQGe4QOwm?usp=sharing
+## Workbook
+google colab: https://colab.research.google.com/drive/1S2nMZLOEN0VI8UdqGOSCViBjQGe4QOwm?usp=sharing
+
 
 
