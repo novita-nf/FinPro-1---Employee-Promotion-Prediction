@@ -32,6 +32,10 @@ A Streamlit web app for HR analytics and promotion prediction.
 
 📂 **Data Source:** `Data/Rakamin Bootcamp - Dataset - Promotion Dataset.csv`
 
-🧠 **Model:** RandomForest pipeline (`model2.pkl`)
+🧠 **Model:** RandomForest pipeline (`model3.pkl`)
+
+## Coding
+google colab:
+https://colab.research.google.com/drive/1S2nMZLOEN0VI8UdqGOSCViBjQGe4QOwm?usp=sharing
 
 
