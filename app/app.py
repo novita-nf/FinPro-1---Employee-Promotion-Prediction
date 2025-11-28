@@ -254,7 +254,8 @@ if menu == "Promotion":
                                 "Proceed to promotion review / fast-track",
                                 "Manual review — may be overlooked strong performers",
                                 "Validate performance records / check missing data",
-                                "No immediate action needed"})
+                                "No immediate action needed"]
+                             })
     st.dataframe(interp_df, use_container_width=True)
 
 
