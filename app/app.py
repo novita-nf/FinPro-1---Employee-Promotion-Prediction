@@ -103,6 +103,7 @@ if menu == "Promotion":
 
     with col3:
         st.markdown("⭐Promotion Eligibility Distribution")
+        
         promo_counts = df["Promotion_Eligible"].value_counts()
         fig_pie, ax_pie = plt.subplots(figsize=(2.2, 2.2))
         ax_pie.pie(
