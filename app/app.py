@@ -210,6 +210,54 @@ if menu == "Promotion":
             result = "✅ Eligible for Promotion" if prediction == 1 else "Not Yet Promotion-Ready"
             st.success(f"**{result} (Probability: {prob:.2f})**")
 
+    # ===============================
+    # 📌 MODEL INTERPRETATION SECTION
+    # ===============================
+    st.markdown("---")
+    st.subheader("📘 Model Prediction Interpretation Guide")
+
+    # Final interpretation
+    st.markdown("""
+    ### **🔍 Final Interpretation Summary**
+    This section explains how model prediction outcomes should be interpreted and which employee groups require HR prioritization.  
+    The model serves as a **decision-support tool**, not an automatic decision engine.
+
+    It helps HR identify:
+    - Employees with strong promotion-readiness signals  
+    - Employees with missed potential near the threshold  
+    - Employees who may be overestimated  
+    - Employees not yet ready for promotion""")
+
+    # Additional notes
+    st.markdown("""
+    ### **📝 Additional Notes**
+    - **TP (> 0.70)** → High confidence. Strong promotion candidates  
+    - **FN (0.40–0.50)** → High priority for manual review (possible missed talent)  
+    - **FP (0.50–0.65)** → Requires data validation (possible overestimation)  
+    - **TN (< 0.40)** → Low readiness, no urgent action required  
+    These ranges help HR quickly classify employees using probability scores.""")
+
+    # Interpretation Table
+    st.markdown("### 📊 Interpretation Table")
+
+    interp_df = pd.DataFrame({"Type": ["TP", "FN", "FP", "TN"],
+                              "Percentage": ["24.40%", "4.80%", "4.80%", "66.00%"],
+                              "Est. Count (per 500)": [122, 24, 24, 330],
+                              "Probability Range": ["> 0.70", "0.40 – 0.50", "0.50 – 0.65", "< 0.40"],
+                              "Category": ["Confirmed Eligible", "Missed Potential", "Overestimated", "Not Ready"],
+                              "Interpretation": [
+                                "Strong confidence — high likelihood of promotion readiness",
+                                "Model missed some actual high performers near the threshold",
+                                "Predicted eligible, but actual performance does not support it",
+                                "Consistently low probability — unlikely to be promotion-ready"],
+                              "HR Action": [
+                                "Proceed to promotion review / fast-track",
+                                "Manual review — may be overlooked strong performers",
+                                "Validate performance records / check missing data",
+                                "No immediate action needed"})
+    st.dataframe(interp_df, use_container_width=True)
+
+
 # ===============================
 # 🔐 ADMIN SIDEBAR MENU
 # ===============================
