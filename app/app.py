@@ -41,7 +41,7 @@ data_path = BASE_DIR.parent / "Data" / "Rakamin Bootcamp - Dataset - Promotion D
 model_path = BASE_DIR / "model3.pkl"
 
 df = pd.read_csv(data_path, sep=";")
-with open(model_path, "rb")
+with open(model_path)
 
 # Drop rows with NaN in Projects_Handled
 if "Projects_Handled" in df.columns:
