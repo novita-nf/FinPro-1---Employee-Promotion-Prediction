@@ -22,20 +22,20 @@ Target variable: Promotion_Eligible (1 = eligible, 0 = not eligible)
 ---
 
 ## Project Summary
-Employee promotion ⟶ aims to support business operations and employee development
-Process ⟶ multi-step review involving several stakeholders (managers, HR, promotion committee) with various considerations such as performance, age, leadership, projects, and others - multi-factor
+Employee promotion ⟶ aims to support business operations and employee development\
+Process ⟶ multi-step review involving several stakeholders (managers, HR, promotion committee) with various considerations such as performance, age, leadership, projects, and others - multi-factor\
 Mechanism ⟶ manually
 
-The current employee promotion process is conducted through manual, multi-step reviews involving multiple stakeholders and various evaluation factors.
+The current employee promotion process is conducted through manual, multi-step reviews involving multiple stakeholders and various evaluation factors.\
 Due to its complexity, this process makes it difficult for HR to quickly prioritize high-potential candidates, delaying internal
 
 ---
 
 ##  Goal
--The goal of this project is to optimize the employee promotion decision-making process through a data-driven and automated approach.
+The goal of this project is to optimize the employee promotion decision-making process through a data-driven and automated approach.\
 By leveraging machine learning, HR can save time and reduce operational inefficiencies. The machine
-learning model serves to predict promotion eligibility, helping prioritize the most qualified candidates
-“By automating manual and repetitive tasks, organizations can reduce administrative and operational costs by 30–50%.”
+learning model serves to predict promotion eligibility, helping prioritize the most qualified candidates\
+“By automating manual and repetitive tasks, organizations can reduce administrative and operational costs by 30–50%.”\
 (McKinsey, “Operations management reshaped by robotic automation”, 2020)
 
 ## Employee Promotion Prediction App
