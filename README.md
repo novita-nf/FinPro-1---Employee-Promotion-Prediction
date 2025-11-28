@@ -11,10 +11,12 @@ This project focuses on utilizing a Machine Learning model designed to predict e
 **Source:** Employee Career Advancement Prediction Data  
 
 Dataset : Rakamin Bootcamp - Dataset - Promotion Dataset.csv
+
 Info Data :
-Total records: 1,000 employees
-Data missing: 950 (5% missing values)
-Features: 10 columns, 2 numeric and 2 categorical
+
+Total records: 1,000 employees\
+Data missing: 950 (5% missing values)\
+Features: 10 columns, 2 numeric and 2 categorical\
 Target variable: Promotion_Eligible (1 = eligible, 0 = not eligible)
 
 ---
