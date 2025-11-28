@@ -256,7 +256,8 @@ if menu == "Promotion":
       # Probability-based category
         if prob > 0.70:
           category = "Confirmed Eligible"
-          interpretation = "Strong confidence — high likelihood of promotion readiness"action = "Proceed to promotion review / fast-track"
+          interpretation = "Strong confidence — high likelihood of promotion readiness"
+          action = "Proceed to promotion review / fast-track"
         elif 0.50 <= prob <= 0.65:
           category = "Overestimated"
           interpretation = "Predicted eligible, but actual data does not fully support it"
