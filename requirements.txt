@@ -6,3 +6,4 @@ streamlit
 cloudpickle
 matplotlib
 seaborn
+plotly
